@@ -1,0 +1,27 @@
+{
+  "name": "glamrush-admin",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@pinia/nuxt": "^0.11.3",
+    "@primevue/forms": "^4.5.4",
+    "@primevue/nuxt-module": "^4.5.4",
+    "@primevue/themes": "^4.5.4",
+    "nuxt": "^3.21.1",
+    "pinia": "^3.0.4",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.5.4",
+    "uuid": "^13.0.0",
+    "vue": "^3.5.28",
+    "vue-router": "^4.6.4",
+    "yup": "^1.7.1"
+  }
+}

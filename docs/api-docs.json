@@ -1,0 +1,1370 @@
+{
+  "info": {
+    "_postman_id": "glamrush-admin-service-collection",
+    "name": "GlamRush Admin API",
+    "description": "API collection for GlamRush Admin Service — Laravel 12 e-commerce admin backend.\n\nSetup:\n1. Set the `base_url` variable (e.g. http://localhost:8000)\n2. Use the Login endpoint first — the token is auto-saved to `{{token}}`\n3. All authenticated endpoints use Bearer token from `{{token}}`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Returns API health status. No authentication required."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    console.log('Token saved to collection variable.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@glamrush.com\",\n    \"password\": \"password123\",\n    \"device_id\": \"postman-device-001\",\n    \"device_name\": \"Postman Client\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/account/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "account", "login"]
+            },
+            "description": "Authenticate a user and receive a Sanctum token. The token is automatically saved to the `{{token}}` collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@glamrush.com\",\n    \"password\": \"Password1\",\n    \"password_confirmation\": \"Password1\",\n    \"device_id\": \"postman-device-001\",\n    \"device_name\": \"Postman Client\",\n    \"role\": \"super_admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/account/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "account", "create"]
+            },
+            "description": "Create a new admin user account. Requires `Create_User` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/account/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "account", "logout"]
+            },
+            "description": "Revoke the current authentication token."
+          },
+          "response": []
+        },
+        {
+          "name": "Who Am I",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/whoami",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "whoami"]
+            },
+            "description": "Get the currently authenticated user's details."
+          },
+          "response": []
+        },
+        {
+          "name": "Request Password Reset",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@glamrush.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/password/reset/request",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "password", "reset", "request"]
+            },
+            "description": "Request a 6-digit password reset code sent to the user's email."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Password Reset Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    console.log('Password reset token saved.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@glamrush.com\",\n    \"code\": \"777777\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/password/reset/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "password", "reset", "verify"]
+            },
+            "description": "Verify the 6-digit reset code. Returns a temporary token with `password:reset` ability."
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Password Reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"password\": \"NewPassword1\",\n    \"password_confirmation\": \"NewPassword1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/password/reset/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "password", "reset", "confirm"]
+            },
+            "description": "Set a new password. Requires a token with `password:reset` ability (obtained from Verify step).\n\nPassword requirements: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication, account management, and password reset endpoints."
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all categories with pagination. Requires `View_Category` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Show Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/:category_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories", ":category_id"],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Category ULID"
+                }
+              ]
+            },
+            "description": "Get a single category by ID. Requires `View_Category` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Electronics",
+                  "type": "text"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Electronic devices and accessories",
+                  "type": "text"
+                },
+                {
+                  "key": "parent_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_title",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_description",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_keywords",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_order",
+                  "value": "0",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Create a new category. Requires `Create_Category` permission.\n\nUses form-data to support image upload (max 2MB)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Electronics Updated\",\n    \"is_active\": true,\n    \"description\": \"Updated description\",\n    \"parent_id\": null,\n    \"meta_title\": null,\n    \"meta_description\": null,\n    \"meta_keywords\": null,\n    \"sort_order\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/:category_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories", ":category_id"],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Category ULID"
+                }
+              ]
+            },
+            "description": "Update an existing category. Requires `Update_Category` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/:category_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories", ":category_id"],
+              "variable": [
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "description": "Category ULID"
+                }
+              ]
+            },
+            "description": "Soft-delete a category. Requires `Delete_Category` permission."
+          },
+          "response": []
+        }
+      ],
+      "description": "Category management endpoints. Supports hierarchical parent-child categories with SEO metadata."
+    },
+    {
+      "name": "Brands",
+      "item": [
+        {
+          "name": "List Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all brands with pagination. Requires `View_Brand` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Show Brand",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/:brand_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", ":brand_id"],
+              "variable": [
+                {
+                  "key": "brand_id",
+                  "value": "",
+                  "description": "Brand ULID"
+                }
+              ]
+            },
+            "description": "Get a single brand by ID. Requires `View_Brand` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Nike",
+                  "type": "text"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Global sportswear brand",
+                  "type": "text"
+                },
+                {
+                  "key": "meta_title",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_description",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_keywords",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_order",
+                  "value": "0",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands"]
+            },
+            "description": "Create a new brand. Requires `Create_Brand` permission.\n\nUses form-data to support logo upload (max 2MB)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Nike Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Updated description",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_title",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_description",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "meta_keywords",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_order",
+                  "value": "0",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/:brand_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", ":brand_id"],
+              "variable": [
+                {
+                  "key": "brand_id",
+                  "value": "",
+                  "description": "Brand ULID"
+                }
+              ]
+            },
+            "description": "Update an existing brand. Requires `Update_Brand` permission. All fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/:brand_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", ":brand_id"],
+              "variable": [
+                {
+                  "key": "brand_id",
+                  "value": "",
+                  "description": "Brand ULID"
+                }
+              ]
+            },
+            "description": "Soft-delete a brand. Requires `Delete_Brand` permission."
+          },
+          "response": []
+        }
+      ],
+      "description": "Brand management endpoints with logo upload support (stored on Google Cloud Storage)."
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all products with pagination and filters. Requires `View_Product` permission.\n\nFilters: search, category_id, is_active."
+          },
+          "response": []
+        },
+        {
+          "name": "Show Product",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/:product_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products", ":product_id"],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "",
+                  "description": "Product ULID"
+                }
+              ]
+            },
+            "description": "Get a single product with its variants. Requires `View_Product` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Simple Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Basic T-Shirt",
+                  "type": "text"
+                },
+                {
+                  "key": "type",
+                  "value": "simple",
+                  "type": "text"
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "type": "text"
+                },
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "type": "text",
+                  "description": "Category ULID"
+                },
+                {
+                  "key": "brand_id",
+                  "value": "",
+                  "type": "text",
+                  "description": "Brand ULID"
+                },
+                {
+                  "key": "description",
+                  "value": "A simple basic t-shirt",
+                  "type": "text"
+                },
+                {
+                  "key": "price",
+                  "value": "29.99",
+                  "type": "text"
+                },
+                {
+                  "key": "sale_price",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sale_starts_at",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sale_ends_at",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "manage_stock",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "stock_quantity",
+                  "value": "100",
+                  "type": "text"
+                },
+                {
+                  "key": "in_stock",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "product_image",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products"]
+            },
+            "description": "Create a simple product (no variants). Requires `Create_Product` permission.\n\nType options: simple, variable, digital, service.\nStatus options: published, draft, archived."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Variable Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Running Shoes",
+                  "type": "text"
+                },
+                {
+                  "key": "type",
+                  "value": "variable",
+                  "type": "text"
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "type": "text"
+                },
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "type": "text",
+                  "description": "Category ULID"
+                },
+                {
+                  "key": "brand_id",
+                  "value": "",
+                  "type": "text",
+                  "description": "Brand ULID"
+                },
+                {
+                  "key": "description",
+                  "value": "Premium running shoes with multiple color options",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[0][price]",
+                  "value": "89.99",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[0][is_default]",
+                  "value": "true",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[0][attributes][color]",
+                  "value": "Red",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[0][attributes][size]",
+                  "value": "M",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[1][price]",
+                  "value": "89.99",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[1][is_default]",
+                  "value": "false",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[1][attributes][color]",
+                  "value": "Blue",
+                  "type": "text"
+                },
+                {
+                  "key": "variants[1][attributes][size]",
+                  "value": "L",
+                  "type": "text"
+                },
+                {
+                  "key": "product_image",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                },
+                {
+                  "key": "variants[0][photos][]",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                },
+                {
+                  "key": "variants[1][photos][]",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products"]
+            },
+            "description": "Create a variable product with multiple variants. Requires `Create_Product` permission.\n\nAt least one variant must have `is_default: true`.\nVariant photos: max 2 images per variant (jpg, jpeg, png, webp; max 5MB each)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Product Name\",\n    \"type\": \"simple\",\n    \"status\": \"published\",\n    \"category_id\": \"\",\n    \"brand_id\": \"\",\n    \"description\": \"Updated description\",\n    \"price\": 39.99,\n    \"manage_stock\": true,\n    \"stock_quantity\": 50,\n    \"in_stock\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/:product_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products", ":product_id"],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "",
+                  "description": "Product ULID"
+                }
+              ]
+            },
+            "description": "Update an existing product. Requires `Update_Product` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/:product_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products", ":product_id"],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "",
+                  "description": "Product ULID"
+                }
+              ]
+            },
+            "description": "Soft-delete a product. Requires `Delete_Product` permission."
+          },
+          "response": []
+        }
+      ],
+      "description": "Product management endpoints. Supports simple and variable product types with variants, SKU generation, and media uploads."
+    },
+    {
+      "name": "Product Variants",
+      "item": [
+        {
+          "name": "Update Product Variant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "price",
+                  "value": "99.99",
+                  "type": "text"
+                },
+                {
+                  "key": "sale_price",
+                  "value": "79.99",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sale_starts_at",
+                  "value": "2026-03-01",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sale_ends_at",
+                  "value": "2026-03-31",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "manage_stock",
+                  "value": "true",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "stock_quantity",
+                  "value": "50",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "in_stock",
+                  "value": "true",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "attributes[color]",
+                  "value": "Green",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "attributes[size]",
+                  "value": "XL",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "published",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "is_default",
+                  "value": "false",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_order",
+                  "value": "1",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "photos[]",
+                  "type": "file",
+                  "src": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/:product_id/variants/:variant_id",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                ":product_id",
+                "variants",
+                ":variant_id"
+              ],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "",
+                  "description": "Product ULID"
+                },
+                {
+                  "key": "variant_id",
+                  "value": "",
+                  "description": "Variant ULID"
+                }
+              ]
+            },
+            "description": "Update a specific product variant. Requires `Update_Product` permission.\n\nNote: `product_id` and `slug` fields are prohibited (cannot be changed).\nOnly one variant per product can be `is_default: true`.\nPhotos: max 2 images (jpg, jpeg, png, webp; max 5MB each)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product Variant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/:product_id/variants/:variant_id",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                ":product_id",
+                "variants",
+                ":variant_id"
+              ],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "",
+                  "description": "Product ULID"
+                },
+                {
+                  "key": "variant_id",
+                  "value": "",
+                  "description": "Variant ULID"
+                }
+              ]
+            },
+            "description": "Delete a product variant. Requires `Delete_Product` permission.\n\nNote: Cannot delete the only default variant of a product."
+          },
+          "response": []
+        }
+      ],
+      "description": "Product variant sub-resource endpoints for updating and deleting individual variants."
+    },
+    {
+      "name": "Vendors",
+      "item": [
+        {
+          "name": "List Vendors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all vendors with pagination. Requires `View_Vendor` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Show Vendor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/:vendor_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors", ":vendor_id"],
+              "variable": [
+                {
+                  "key": "vendor_id",
+                  "value": "",
+                  "description": "Vendor ULID"
+                }
+              ]
+            },
+            "description": "Get a single vendor by ID. Requires `View_Vendor` permission."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John's Store\",\n    \"business_name\": \"John's Fashion Outlet\",\n    \"email\": \"john@vendorstore.com\",\n    \"phone\": \"+1234567890\",\n    \"password\": \"Password1\",\n    \"code\": \"JOHN-001\",\n    \"is_active\": true,\n    \"address_line_1\": \"123 Main Street\",\n    \"address_line_2\": \"Suite 100\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"postal_code\": \"10001\",\n    \"country\": \"US\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors"]
+            },
+            "description": "Create a new vendor. Requires `Create_Vendor` permission.\n\nRequired: name, email, password, code.\nOptional: business_name, phone, is_active, address fields."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Vendor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"John's Updated Store\",\n    \"business_name\": \"John's Premium Fashion\",\n    \"phone\": \"+0987654321\",\n    \"is_active\": true,\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/:vendor_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors", ":vendor_id"],
+              "variable": [
+                {
+                  "key": "vendor_id",
+                  "value": "",
+                  "description": "Vendor ULID"
+                }
+              ]
+            },
+            "description": "Update an existing vendor. Requires `Update_Vendor` permission. All fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Vendor",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/:vendor_id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "vendors", ":vendor_id"],
+              "variable": [
+                {
+                  "key": "vendor_id",
+                  "value": "",
+                  "description": "Vendor ULID"
+                }
+              ]
+            },
+            "description": "Delete a vendor. Requires `Delete_Vendor` permission."
+          },
+          "response": []
+        }
+      ],
+      "description": "Vendor management endpoints. Note: Vendor routes may not yet be registered in routes/api.php."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+.auth-form {
+  @apply flex flex-col gap-5;
+}
+
+.form-field {
+  @apply flex flex-col gap-1;
+}
+
+.form-field label {
+  @apply text-sm font-semibold text-slate-700;
+}
+
+.auth-description {
+  @apply text-sm text-slate-500 text-center leading-relaxed mb-2;
+}
+
+.auth-footer {
+  @apply text-center pt-1;
+}
+
+.auth-footer a {
+  @apply text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline transition-colors;
+}
