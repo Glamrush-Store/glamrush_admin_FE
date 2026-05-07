@@ -12,7 +12,7 @@ export function useApiClient(clientOptions) {
 
   async function request(url, options = {}) {
     const headers = {
-      "Content-Type": "application/json",
+      ...(!(options.body instanceof FormData) && { "Content-Type": "application/json" }),
       Accept: "application/json",
       ...options.headers,
     };
@@ -68,5 +68,22 @@ export function useApiClient(clientOptions) {
     return request(url, { method: "DELETE" });
   }
 
-  return { get, post, put, del };
+  function postFormData(url, formData) {
+    return request(url, {
+      method: "POST",
+      body: formData,
+      headers: { Accept: "application/json" },
+    });
+  }
+
+  function putFormData(url, formData) {
+    formData.append("_method", "PUT");
+    return request(url, {
+      method: "POST",
+      body: formData,
+      headers: { Accept: "application/json" },
+    });
+  }
+
+  return { get, post, put, del, postFormData, putFormData };
 }
