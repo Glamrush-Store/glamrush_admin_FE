@@ -154,6 +154,13 @@ function toggleSettings() {
             <span>Manage Attribute Codes</span>
             <i class="pi pi-list" />
           </NuxtLink>
+          <NuxtLink
+            to="/settings/payment-methods"
+            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
+          >
+            <span>Payments</span>
+            <i class="pi pi-credit-card" />
+          </NuxtLink>
         </div>
       </nav>
     </aside>
