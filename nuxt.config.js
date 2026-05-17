@@ -15,7 +15,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: "http://127.0.0.1:8001/api/v1",
+      apiBase: process.env.API_BASE || "http://127.0.0.1:8001/api/v1",
     },
   },
 
