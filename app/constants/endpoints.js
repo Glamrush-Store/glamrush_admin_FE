@@ -81,3 +81,11 @@ export const SKU_ATTRIBUTE_CODES = {
   DELETE: (id) => `/sku-attribute-code/${id}`,
   TYPES: "/sku-attribute-code/list/types",
 };
+
+export const PAYMENT_METHODS = {
+  LIST:   "/payment-methods",
+  CREATE: "/payment-methods",
+  SHOW:   (id) => `/payment-methods/${id}`,
+  UPDATE: (id) => `/payment-methods/${id}`,
+  DELETE: (id) => `/payment-methods/${id}`,
+};
