@@ -66,6 +66,12 @@ export const SHIPMENTS = {
   SHOW: (id) => `/shipments/${id}`,
 };
 
+export const ORDERS = {
+  LIST: "/orders",
+  SHOW: (id) => `/orders/${id}`,
+  UPDATE_STATUS: (id) => `/orders/${id}/status`,
+};
+
 export const MEDIA = {
   DELETE: (id) => `/catalog/media/${id}`,
 };

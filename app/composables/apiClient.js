@@ -64,6 +64,13 @@ export function useApiClient(clientOptions) {
     });
   }
 
+  function patch(url, body) {
+    return request(url, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
   function del(url) {
     return request(url, { method: "DELETE" });
   }
@@ -85,5 +92,5 @@ export function useApiClient(clientOptions) {
     });
   }
 
-  return { get, post, put, del, postFormData, putFormData };
+  return { get, post, put, patch, del, postFormData, putFormData };
 }
