@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --p-tag-success-background: #166534;
+  --p-tag-success-color: #ffffff;
+}
+
+.p-tag-success {
+  background: #166534;
+  color: #ffffff;
+}

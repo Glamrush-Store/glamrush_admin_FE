@@ -53,6 +53,14 @@ function toggleSettings() {
           <i class="pi pi-users" />
         </NuxtLink>
 
+        <NuxtLink
+          to="/orders"
+          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
+        >
+          <span>Orders</span>
+          <i class="pi pi-shopping-bag" />
+        </NuxtLink>
+
         <!-- Shipping group -->
         <button
           class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
