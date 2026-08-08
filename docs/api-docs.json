@@ -1,49 +1,176 @@
 {
   "info": {
-    "_postman_id": "glamrush-admin-service-collection",
-    "name": "GlamRush Admin API",
-    "description": "API collection for GlamRush Admin Service — Laravel 12 e-commerce admin backend.\n\nSetup:\n1. Set the `base_url` variable (e.g. http://localhost:8000)\n2. Use the Login endpoint first — the token is auto-saved to `{{token}}`\n3. All authenticated endpoints use Bearer token from `{{token}}`",
+    "name": "Glamrush API",
+    "_postman_id": "glamrush-api-collection-v1",
+    "description": "Complete API collection for the Glamrush backend service.\n\n## Collection Variables\n| Variable | Purpose | Auto-populated |\n|----------|---------|----------------|\n| `baseUrl` | API base URL | No \u00e2\u20ac\u201d set to local/staging/prod |\n| `authToken` | Sanctum bearer token | Yes \u00e2\u20ac\u201d on login or register |\n| `cartToken` | Guest cart UUID | Yes \u00e2\u20ac\u201d on first guest add-to-cart |\n| `resetCode` | 6-digit password reset code | No \u00e2\u20ac\u201d copy from email |\n| `productSlug` | Slug for GET /products/{slug} | No \u00e2\u20ac\u201d set a real slug |\n| `productId` | Product ULID for cart/saved-item routes | No \u00e2\u20ac\u201d set a real ULID |\n\n## How to Add New Endpoints\n1. Locate the correct folder.\n2. Copy an existing request and rename it.\n3. Update method, path (in `url.raw`), body fields, and example responses.\n4. If the route is auth-protected, set `auth.type = bearer` and use `{{authToken}}`.\n5. If it is a guest-supporting cart route, include the `X-Cart-Token` header.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
-      "key": "base_url",
-      "value": "http://localhost:8000",
-      "type": "string"
+      "key": "baseUrl",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string",
+      "description": "API base URL. Update for staging or production."
     },
     {
-      "key": "token",
+      "key": "authToken",
       "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "Sanctum bearer token. Auto-set by the login and register requests."
+    },
+    {
+      "key": "cartToken",
+      "value": "",
+      "type": "string",
+      "description": "Guest cart UUID. Auto-set by the Add to Cart request when unauthenticated."
+    },
+    {
+      "key": "resetCode",
+      "value": "",
+      "type": "string",
+      "description": "6-digit password reset code. Set manually after receiving the email."
+    },
+    {
+      "key": "productSlug",
+      "value": "example-product",
+      "type": "string",
+      "description": "A valid product slug for GET /products/{slug}."
+    },
+    {
+      "key": "productId",
+      "value": "01ARYZ6S41TPTWDRA8XHBJK1T",
+      "type": "string",
+      "description": "A valid product ULID for cart and saved-item routes."
     }
   ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{token}}",
-        "type": "string"
-      }
-    ]
-  },
   "item": [
     {
       "name": "Auth",
+      "description": "Registration, login, social auth, logout, current user, and password reset flow.\n\nProtected routes require `Authorization: Bearer {{authToken}}`.\nThe register and login requests auto-save the returned token to `{{authToken}}`.",
       "item": [
         {
-          "name": "Health Check",
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('authToken', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/health",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "health"]
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\",\n    \"phone\": \"+1234567890\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "Returns API health status. No authentication required."
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"Jane Smith\",\"email\":\"jane@example.com\",\"phone\":\"+1234567890\",\"password\":\"password123\",\"password_confirmation\":\"password123\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Registered successfully.\",\n    \"data\": {\n        \"token\": \"1|abc123def456ghi789jkl000000000000\",\n        \"user\": {\n            \"id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Jane Smith\",\n            \"email\": \"jane@example.com\",\n            \"phone\": \"+1234567890\",\n            \"created_at\": \"2026-03-03T10:00:00.000000Z\"\n        }\n    }\n}"
+            },
+            {
+              "name": "422 Validation Error (email taken)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"name\":\"Jane Smith\",\"email\":\"existing@example.com\",\"password\":\"password123\",\"password_confirmation\":\"password123\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"The email has already been taken.\",\n    \"errors\": {\n        \"email\": [\"The email has already been taken.\"]\n    }\n}"
+            }
+          ]
         },
         {
           "name": "Login",
@@ -52,10 +179,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.data && jsonData.data.token) {",
-                  "    pm.collectionVariables.set('token', jsonData.data.token);",
-                  "    console.log('Token saved to collection variable.');",
+                  "var res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('authToken', res.token);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -63,139 +189,123 @@
             }
           ],
           "request": {
-            "auth": {
-              "type": "noauth"
-            },
             "method": "POST",
             "header": [
               {
-                "key": "Accept",
+                "key": "Content-Type",
                 "value": "application/json"
               },
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"admin@glamrush.com\",\n    \"password\": \"password123\",\n    \"device_id\": \"postman-device-001\",\n    \"device_name\": \"Postman Client\"\n}"
+              "raw": "{\n    \"email\": \"jane@example.com\",\n    \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/account/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "account", "login"]
-            },
-            "description": "Authenticate a user and receive a Sanctum token. The token is automatically saved to the `{{token}}` collection variable."
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
           },
-          "response": []
-        },
-        {
-          "name": "Create Account",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\":\"jane@example.com\",\"password\":\"password123\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login"
+                }
               },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@glamrush.com\",\n    \"password\": \"Password1\",\n    \"password_confirmation\": \"Password1\",\n    \"device_id\": \"postman-device-001\",\n    \"device_name\": \"Postman Client\",\n    \"role\": \"super_admin\"\n}"
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Login successful.\",\n    \"data\": {\n        \"token\": \"2|xyz789abc123def456ghi000000000000\",\n        \"user\": {\n            \"id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Jane Smith\",\n            \"email\": \"jane@example.com\",\n            \"phone\": null,\n            \"created_at\": \"2026-03-03T10:00:00.000000Z\"\n        }\n    }\n}"
             },
-            "url": {
-              "raw": "{{base_url}}/api/v1/account/create",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "account", "create"]
-            },
-            "description": "Create a new admin user account. Requires `Create_User` permission."
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/account/logout",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "account", "logout"]
-            },
-            "description": "Revoke the current authentication token."
-          },
-          "response": []
-        },
-        {
-          "name": "Who Am I",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/whoami",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "whoami"]
-            },
-            "description": "Get the currently authenticated user's details."
-          },
-          "response": []
-        },
-        {
-          "name": "Request Password Reset",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
+            {
+              "name": "401 Invalid Credentials",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\":\"jane@example.com\",\"password\":\"wrongpassword\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login"
+                }
               },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"admin@glamrush.com\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/password/reset/request",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "password", "reset", "request"]
-            },
-            "description": "Request a 6-digit password reset code sent to the user's email."
-          },
-          "response": []
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid credentials.\",\n    \"data\": null,\n    \"errors\": []\n}"
+            }
+          ]
         },
         {
-          "name": "Verify Password Reset Code",
+          "name": "Social Login",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.data && jsonData.data.token) {",
-                  "    pm.collectionVariables.set('token', jsonData.data.token);",
-                  "    console.log('Password reset token saved.');",
+                  "var res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('authToken', res.token);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -203,504 +313,505 @@
             }
           ],
           "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"<provider-access-token>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/social/google",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "social", "google"]
+            },
+            "description": "Exchange a provider access token for a Sanctum token.\nReplace `google` in the path with the actual provider (e.g. `facebook`).\nThe `token` field is the access token obtained from the provider on the client side."
+          },
+          "response": [
+            {
+              "name": "201 Created (find or create user)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"token\":\"ya29.a0AfH6SMB...\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/social/google"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Authenticated successfully.\",\n    \"data\": {\n        \"token\": \"3|soc123abc456def789ghi000000000000\",\n        \"user\": {\n            \"id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Jane Smith\",\n            \"email\": \"jane@gmail.com\",\n            \"phone\": null,\n            \"created_at\": \"2026-03-03T10:00:00.000000Z\"\n        }\n    }\n}"
+            },
+            {
+              "name": "422 Invalid Provider Token",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"token\":\"invalid-token\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/social/google"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"The provided social token is invalid.\",\n    \"errors\": {\n        \"token\": [\"The provided social token is invalid.\"]\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Me (Current User)",
+          "request": {
+            "method": "GET",
             "auth": {
-              "type": "noauth"
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
             },
-            "method": "POST",
             "header": [
               {
                 "key": "Accept",
                 "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me"
+                }
               },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n        \"name\": \"Jane Smith\",\n        \"email\": \"jane@example.com\",\n        \"phone\": null,\n        \"created_at\": \"2026-03-03T10:00:00.000000Z\"\n    }\n}"
+            },
+            {
+              "name": "401 Unauthenticated",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me"
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/logout"
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"admin@glamrush.com\",\n    \"code\": \"777777\"\n}"
+              "raw": "{\n    \"email\": \"jane@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/password/reset/verify",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "password", "reset", "verify"]
+              "raw": "{{baseUrl}}/auth/password/forgot",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "password", "forgot"]
             },
-            "description": "Verify the 6-digit reset code. Returns a temporary token with `password:reset` ability."
+            "description": "Sends a 6-digit reset code to the email address. Always returns 200 to prevent email enumeration. Copy the code into the `{{resetCode}}` collection variable."
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK (always returned)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\":\"jane@example.com\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/password/forgot"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"If this email exists, a reset code has been sent.\",\n    \"data\": null\n}"
+            }
+          ]
         },
         {
-          "name": "Confirm Password Reset",
+          "name": "Verify Reset Code",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "Accept",
+                "key": "Content-Type",
                 "value": "application/json"
               },
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"password\": \"NewPassword1\",\n    \"password_confirmation\": \"NewPassword1\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/password/reset/confirm",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "password", "reset", "confirm"]
-            },
-            "description": "Set a new password. Requires a token with `password:reset` ability (obtained from Verify step).\n\nPassword requirements: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit."
-          },
-          "response": []
-        }
-      ],
-      "description": "Authentication, account management, and password reset endpoints."
-    },
-    {
-      "name": "Categories",
-      "item": [
-        {
-          "name": "List Categories",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories?page=1&per_page=15",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "categories"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "per_page",
-                  "value": "15"
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "disabled": true
+              "raw": "{\n    \"email\": \"jane@example.com\",\n    \"code\": \"{{resetCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
+              }
             },
-            "description": "List all categories with pagination. Requires `View_Category` permission."
+            "url": {
+              "raw": "{{baseUrl}}/auth/password/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "password", "verify"]
+            },
+            "description": "Verifies the 6-digit code from the email. Must be called before Reset Password."
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\":\"jane@example.com\",\"code\":\"123456\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/password/verify"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Code verified successfully.\",\n    \"data\": null\n}"
+            },
+            {
+              "name": "422 Invalid or Expired Code",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\":\"jane@example.com\",\"code\":\"000000\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/password/verify"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"The provided code is invalid or has expired.\",\n    \"errors\": {\n        \"code\": [\"The provided code is invalid or has expired.\"]\n    }\n}"
+            }
+          ]
         },
         {
-          "name": "Show Category",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/:category_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "categories", ":category_id"],
-              "variable": [
-                {
-                  "key": "category_id",
-                  "value": "",
-                  "description": "Category ULID"
-                }
-              ]
-            },
-            "description": "Get a single category by ID. Requires `View_Category` permission."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Category",
+          "name": "Reset Password",
           "request": {
             "method": "POST",
             "header": [
               {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "name",
-                  "value": "Electronics",
-                  "type": "text"
-                },
-                {
-                  "key": "is_active",
-                  "value": "true",
-                  "type": "text"
-                },
-                {
-                  "key": "description",
-                  "value": "Electronic devices and accessories",
-                  "type": "text"
-                },
-                {
-                  "key": "parent_id",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_title",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_description",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_keywords",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sort_order",
-                  "value": "0",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "image",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "categories"]
-            },
-            "description": "Create a new category. Requires `Create_Category` permission.\n\nUses form-data to support image upload (max 2MB)."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Category",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Accept",
+                "key": "Content-Type",
                 "value": "application/json"
               },
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"Electronics Updated\",\n    \"is_active\": true,\n    \"description\": \"Updated description\",\n    \"parent_id\": null,\n    \"meta_title\": null,\n    \"meta_description\": null,\n    \"meta_keywords\": null,\n    \"sort_order\": 1\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/:category_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "categories", ":category_id"],
-              "variable": [
-                {
-                  "key": "category_id",
-                  "value": "",
-                  "description": "Category ULID"
+              "raw": "{\n    \"email\": \"jane@example.com\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
-            },
-            "description": "Update an existing category. Requires `Update_Category` permission."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Category",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
               }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/:category_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "categories", ":category_id"],
-              "variable": [
-                {
-                  "key": "category_id",
-                  "value": "",
-                  "description": "Category ULID"
-                }
-              ]
             },
-            "description": "Soft-delete a category. Requires `Delete_Category` permission."
+            "url": {
+              "raw": "{{baseUrl}}/auth/password/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "password", "reset"]
+            },
+            "description": "Sets a new password. Call Verify Reset Code first to validate the 6-digit code."
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"email\":\"jane@example.com\",\"password\":\"newpassword123\",\"password_confirmation\":\"newpassword123\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/password/reset"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Password has been reset successfully.\",\n    \"data\": null\n}"
+            }
+          ]
         }
-      ],
-      "description": "Category management endpoints. Supports hierarchical parent-child categories with SEO metadata."
-    },
-    {
-      "name": "Brands",
-      "item": [
-        {
-          "name": "List Brands",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/brands?page=1&per_page=15",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "brands"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "per_page",
-                  "value": "15"
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "List all brands with pagination. Requires `View_Brand` permission."
-          },
-          "response": []
-        },
-        {
-          "name": "Show Brand",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/brands/:brand_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "brands", ":brand_id"],
-              "variable": [
-                {
-                  "key": "brand_id",
-                  "value": "",
-                  "description": "Brand ULID"
-                }
-              ]
-            },
-            "description": "Get a single brand by ID. Requires `View_Brand` permission."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Brand",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "name",
-                  "value": "Nike",
-                  "type": "text"
-                },
-                {
-                  "key": "is_active",
-                  "value": "true",
-                  "type": "text"
-                },
-                {
-                  "key": "description",
-                  "value": "Global sportswear brand",
-                  "type": "text"
-                },
-                {
-                  "key": "meta_title",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_description",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_keywords",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sort_order",
-                  "value": "0",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "logo",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/brands",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "brands"]
-            },
-            "description": "Create a new brand. Requires `Create_Brand` permission.\n\nUses form-data to support logo upload (max 2MB)."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Brand",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "name",
-                  "value": "Nike Updated",
-                  "type": "text"
-                },
-                {
-                  "key": "is_active",
-                  "value": "true",
-                  "type": "text"
-                },
-                {
-                  "key": "description",
-                  "value": "Updated description",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_title",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_description",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "meta_keywords",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sort_order",
-                  "value": "0",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "logo",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/brands/:brand_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "brands", ":brand_id"],
-              "variable": [
-                {
-                  "key": "brand_id",
-                  "value": "",
-                  "description": "Brand ULID"
-                }
-              ]
-            },
-            "description": "Update an existing brand. Requires `Update_Brand` permission. All fields are optional."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Brand",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/brands/:brand_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "brands", ":brand_id"],
-              "variable": [
-                {
-                  "key": "brand_id",
-                  "value": "",
-                  "description": "Brand ULID"
-                }
-              ]
-            },
-            "description": "Soft-delete a brand. Requires `Delete_Brand` permission."
-          },
-          "response": []
-        }
-      ],
-      "description": "Brand management endpoints with logo upload support (stored on Google Cloud Storage)."
+      ]
     },
     {
       "name": "Products",
+      "description": "Public product catalog endpoints. No authentication required.",
       "item": [
         {
           "name": "List Products",
@@ -713,545 +824,102 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/products?page=1&per_page=15",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "products"],
+              "raw": "{{baseUrl}}/products?page=1&per_page=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"],
               "query": [
                 {
                   "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "per_page",
-                  "value": "15"
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "category_id",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "is_active",
-                  "value": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "List all products with pagination and filters. Requires `View_Product` permission.\n\nFilters: search, category_id, is_active."
-          },
-          "response": []
-        },
-        {
-          "name": "Show Product",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/products/:product_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "products", ":product_id"],
-              "variable": [
-                {
-                  "key": "product_id",
-                  "value": "",
-                  "description": "Product ULID"
-                }
-              ]
-            },
-            "description": "Get a single product with its variants. Requires `View_Product` permission."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Simple Product",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "name",
-                  "value": "Basic T-Shirt",
-                  "type": "text"
-                },
-                {
-                  "key": "type",
-                  "value": "simple",
-                  "type": "text"
-                },
-                {
-                  "key": "status",
-                  "value": "published",
-                  "type": "text"
-                },
-                {
-                  "key": "category_id",
-                  "value": "",
-                  "type": "text",
-                  "description": "Category ULID"
-                },
-                {
-                  "key": "brand_id",
-                  "value": "",
-                  "type": "text",
-                  "description": "Brand ULID"
-                },
-                {
-                  "key": "description",
-                  "value": "A simple basic t-shirt",
-                  "type": "text"
-                },
-                {
-                  "key": "price",
-                  "value": "29.99",
-                  "type": "text"
-                },
-                {
-                  "key": "sale_price",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sale_starts_at",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sale_ends_at",
-                  "value": "",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "manage_stock",
-                  "value": "true",
-                  "type": "text"
-                },
-                {
-                  "key": "stock_quantity",
-                  "value": "100",
-                  "type": "text"
-                },
-                {
-                  "key": "in_stock",
-                  "value": "true",
-                  "type": "text"
-                },
-                {
-                  "key": "product_image",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/products",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "products"]
-            },
-            "description": "Create a simple product (no variants). Requires `Create_Product` permission.\n\nType options: simple, variable, digital, service.\nStatus options: published, draft, archived."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Variable Product",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "name",
-                  "value": "Running Shoes",
-                  "type": "text"
-                },
-                {
-                  "key": "type",
-                  "value": "variable",
-                  "type": "text"
-                },
-                {
-                  "key": "status",
-                  "value": "published",
-                  "type": "text"
-                },
-                {
-                  "key": "category_id",
-                  "value": "",
-                  "type": "text",
-                  "description": "Category ULID"
-                },
-                {
-                  "key": "brand_id",
-                  "value": "",
-                  "type": "text",
-                  "description": "Brand ULID"
-                },
-                {
-                  "key": "description",
-                  "value": "Premium running shoes with multiple color options",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[0][price]",
-                  "value": "89.99",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[0][is_default]",
-                  "value": "true",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[0][attributes][color]",
-                  "value": "Red",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[0][attributes][size]",
-                  "value": "M",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[1][price]",
-                  "value": "89.99",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[1][is_default]",
-                  "value": "false",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[1][attributes][color]",
-                  "value": "Blue",
-                  "type": "text"
-                },
-                {
-                  "key": "variants[1][attributes][size]",
-                  "value": "L",
-                  "type": "text"
-                },
-                {
-                  "key": "product_image",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                },
-                {
-                  "key": "variants[0][photos][]",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                },
-                {
-                  "key": "variants[1][photos][]",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/products",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "products"]
-            },
-            "description": "Create a variable product with multiple variants. Requires `Create_Product` permission.\n\nAt least one variant must have `is_default: true`.\nVariant photos: max 2 images per variant (jpg, jpeg, png, webp; max 5MB each)."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Product",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"Updated Product Name\",\n    \"type\": \"simple\",\n    \"status\": \"published\",\n    \"category_id\": \"\",\n    \"brand_id\": \"\",\n    \"description\": \"Updated description\",\n    \"price\": 39.99,\n    \"manage_stock\": true,\n    \"stock_quantity\": 50,\n    \"in_stock\": true\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/products/:product_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "products", ":product_id"],
-              "variable": [
-                {
-                  "key": "product_id",
-                  "value": "",
-                  "description": "Product ULID"
-                }
-              ]
-            },
-            "description": "Update an existing product. Requires `Update_Product` permission."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Product",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/products/:product_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "products", ":product_id"],
-              "variable": [
-                {
-                  "key": "product_id",
-                  "value": "",
-                  "description": "Product ULID"
-                }
-              ]
-            },
-            "description": "Soft-delete a product. Requires `Delete_Product` permission."
-          },
-          "response": []
-        }
-      ],
-      "description": "Product management endpoints. Supports simple and variable product types with variants, SKU generation, and media uploads."
-    },
-    {
-      "name": "Product Variants",
-      "item": [
-        {
-          "name": "Update Product Variant",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "price",
-                  "value": "99.99",
-                  "type": "text"
-                },
-                {
-                  "key": "sale_price",
-                  "value": "79.99",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sale_starts_at",
-                  "value": "2026-03-01",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sale_ends_at",
-                  "value": "2026-03-31",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "manage_stock",
-                  "value": "true",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "stock_quantity",
-                  "value": "50",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "in_stock",
-                  "value": "true",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "attributes[color]",
-                  "value": "Green",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "attributes[size]",
-                  "value": "XL",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "status",
-                  "value": "published",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "is_default",
-                  "value": "false",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "sort_order",
                   "value": "1",
-                  "type": "text",
-                  "disabled": true
-                },
-                {
-                  "key": "photos[]",
-                  "type": "file",
-                  "src": "",
-                  "disabled": true
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/products/:product_id/variants/:variant_id",
-              "host": ["{{base_url}}"],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":product_id",
-                "variants",
-                ":variant_id"
-              ],
-              "variable": [
-                {
-                  "key": "product_id",
-                  "value": "",
-                  "description": "Product ULID"
-                },
-                {
-                  "key": "variant_id",
-                  "value": "",
-                  "description": "Variant ULID"
-                }
-              ]
-            },
-            "description": "Update a specific product variant. Requires `Update_Product` permission.\n\nNote: `product_id` and `slug` fields are prohibited (cannot be changed).\nOnly one variant per product can be `is_default: true`.\nPhotos: max 2 images (jpg, jpeg, png, webp; max 5MB each)."
-          },
-          "response": []
-        },
-        {
-          "name": "Delete Product Variant",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/products/:product_id/variants/:variant_id",
-              "host": ["{{base_url}}"],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ":product_id",
-                "variants",
-                ":variant_id"
-              ],
-              "variable": [
-                {
-                  "key": "product_id",
-                  "value": "",
-                  "description": "Product ULID"
-                },
-                {
-                  "key": "variant_id",
-                  "value": "",
-                  "description": "Variant ULID"
-                }
-              ]
-            },
-            "description": "Delete a product variant. Requires `Delete_Product` permission.\n\nNote: Cannot delete the only default variant of a product."
-          },
-          "response": []
-        }
-      ],
-      "description": "Product variant sub-resource endpoints for updating and deleting individual variants."
-    },
-    {
-      "name": "Vendors",
-      "item": [
-        {
-          "name": "List Vendors",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/vendors?page=1&per_page=15",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "vendors"],
-              "query": [
-                {
-                  "key": "page",
-                  "value": "1"
+                  "description": "Page number"
                 },
                 {
                   "key": "per_page",
-                  "value": "15"
+                  "value": "20",
+                  "description": "Items per page"
                 },
                 {
                   "key": "search",
                   "value": "",
+                  "description": "Search term",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "",
+                  "description": "Category slug",
+                  "disabled": true
+                },
+                {
+                  "key": "brand",
+                  "value": "",
+                  "description": "Brand slug",
+                  "disabled": true
+                },
+                {
+                  "key": "featured",
+                  "value": "true",
+                  "description": "Filter featured products",
+                  "disabled": true
+                },
+                {
+                  "key": "price_min",
+                  "value": "0",
+                  "description": "Minimum price",
+                  "disabled": true
+                },
+                {
+                  "key": "price_max",
+                  "value": "1000",
+                  "description": "Maximum price",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "name",
+                  "description": "Sort field",
+                  "disabled": true
+                },
+                {
+                  "key": "direction",
+                  "value": "asc",
+                  "description": "Sort direction: asc or desc",
                   "disabled": true
                 }
               ]
-            },
-            "description": "List all vendors with pagination. Requires `View_Vendor` permission."
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products?page=1&per_page=20"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"name\": \"Matte Lipstick\",\n            \"slug\": \"matte-lipstick\",\n            \"sku\": \"LIP-001\",\n            \"type\": \"simple\",\n            \"isOnSale\": false,\n            \"price\": 24.99,\n            \"available\": true,\n            \"is_featured\": true,\n            \"sort_order\": 0,\n            \"images\": [],\n            \"category\": {\n                \"id\": \"01ARYZ6S41TPTWDRA8XHBJK2C\",\n                \"name\": \"Lips\",\n                \"slug\": \"lips\"\n            },\n            \"brand\": {\n                \"id\": \"01ARYZ6S41TPTWDRA8XHBJK2B\",\n                \"name\": \"GlamBrand\",\n                \"slug\": \"glambrand\"\n            },\n            \"default_attributes\": [],\n            \"variants\": []\n        }\n    ]\n}"
+            }
+          ]
         },
         {
-          "name": "Show Vendor",
+          "name": "Get Product",
           "request": {
             "method": "GET",
             "header": [
@@ -1261,110 +929,1202 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/vendors/:vendor_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "vendors", ":vendor_id"],
-              "variable": [
-                {
-                  "key": "vendor_id",
-                  "value": "",
-                  "description": "Vendor ULID"
-                }
-              ]
-            },
-            "description": "Get a single vendor by ID. Requires `View_Vendor` permission."
+              "raw": "{{baseUrl}}/products/{{productSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["products", "{{productSlug}}"]
+            }
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products/matte-lipstick"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"name\": \"Matte Lipstick\",\n        \"slug\": \"matte-lipstick\",\n        \"sku\": \"LIP-001\",\n        \"type\": \"simple\",\n        \"isOnSale\": false,\n        \"price\": 24.99,\n        \"available\": true,\n        \"is_featured\": true,\n        \"sort_order\": 0,\n        \"images\": [],\n        \"category\": {\n            \"id\": \"01ARYZ6S41TPTWDRA8XHBJK2C\",\n            \"name\": \"Lips\",\n            \"slug\": \"lips\"\n        },\n        \"brand\": {\n            \"id\": \"01ARYZ6S41TPTWDRA8XHBJK2B\",\n            \"name\": \"GlamBrand\",\n            \"slug\": \"glambrand\"\n        },\n        \"default_attributes\": [],\n        \"variants\": [\n            {\n                \"id\": \"01ARYZ6S41TPTWDRA8XHBJK2V\",\n                \"sku\": \"LIP-001-RED\",\n                \"images\": [],\n                \"isDefault\": true,\n                \"price\": 24.99,\n                \"salePrice\": null,\n                \"inStock\": true,\n                \"isOnSale\": false,\n                \"available\": true,\n                \"attributes\": [\n                    {\n                        \"name\": \"Color\",\n                        \"value\": \"Red\"\n                    }\n                ]\n            }\n        ]\n    }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/products/nonexistent-slug"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"No query results for model [App\\\\Infrastructure\\\\Persistence\\\\Eloquent\\\\Models\\\\Product].\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "description": "Public category listing. No authentication required.",
+      "item": [
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/categories"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": \"01ARYZ6S41TPTWDRA8XHBJK2C\",\n            \"name\": \"Lips\",\n            \"slug\": \"lips\",\n            \"images\": [],\n            \"children\": [\n                {\n                    \"id\": \"01ARYZ6S41TPTWDRA8XHBJK3C\",\n                    \"name\": \"Lipstick\",\n                    \"slug\": \"lipstick\",\n                    \"images\": []\n                }\n            ]\n        }\n    ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Brands",
+      "description": "Public brand listing. No authentication required.",
+      "item": [
+        {
+          "name": "List Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": \"01ARYZ6S41TPTWDRA8XHBJK2B\",\n            \"name\": \"GlamBrand\",\n            \"slug\": \"glambrand\"\n        }\n    ]\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "description": "Shopping cart. Supports both authenticated users and guests.\n\n**Authenticated**: Include `Authorization: Bearer {{authToken}}`. Response has `cart_token: null`.\n**Guest**: Include `X-Cart-Token: {{cartToken}}` header. The token is auto-populated the first time you call Add to Cart without auth.\n\nCart items expire 1 hour after the last write. Expired items are excluded from GET automatically.",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Cart-Token",
+                "value": "{{cartToken}}",
+                "description": "Guest cart token. Remove this header (or add Authorization instead) for authenticated requests.",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK \u00e2\u20ac\u201d Guest cart",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Cart-Token",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Matte Lipstick\",\n            \"slug\": \"matte-lipstick\",\n            \"thumb\": null,\n            \"quantity\": 2,\n            \"expires_at\": \"2026-03-03T11:00:00.000000Z\"\n        }\n    ],\n    \"cart_token\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+            },
+            {
+              "name": "200 OK \u00e2\u20ac\u201d Authenticated (no token in response)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": 2,\n            \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Matte Lipstick\",\n            \"slug\": \"matte-lipstick\",\n            \"thumb\": null,\n            \"quantity\": 1,\n            \"expires_at\": \"2026-03-03T11:00:00.000000Z\"\n        }\n    ],\n    \"cart_token\": null\n}"
+            },
+            {
+              "name": "200 OK \u00e2\u20ac\u201d Empty (no token sent)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [],\n    \"cart_token\": null\n}"
+            }
+          ]
         },
         {
-          "name": "Create Vendor",
+          "name": "Add to Cart",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var res = pm.response.json();",
+                  "if (res.cart_token) {",
+                  "    pm.collectionVariables.set('cartToken', res.cart_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "X-Cart-Token",
+                "value": "{{cartToken}}",
+                "description": "Omit for a new guest cart (a new token is generated and returned). Remove and add Authorization header for authenticated requests.",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"John's Store\",\n    \"business_name\": \"John's Fashion Outlet\",\n    \"email\": \"john@vendorstore.com\",\n    \"phone\": \"+1234567890\",\n    \"password\": \"Password1\",\n    \"code\": \"JOHN-001\",\n    \"is_active\": true,\n    \"address_line_1\": \"123 Main Street\",\n    \"address_line_2\": \"Suite 100\",\n    \"city\": \"New York\",\n    \"state\": \"NY\",\n    \"postal_code\": \"10001\",\n    \"country\": \"US\"\n}"
+              "raw": "{\n    \"product_id\": \"{{productId}}\",\n    \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/vendors",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "vendors"]
+              "raw": "{{baseUrl}}/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart"]
             },
-            "description": "Create a new vendor. Requires `Create_Vendor` permission.\n\nRequired: name, email, password, code.\nOptional: business_name, phone, is_active, address fields."
+            "description": "Adds an item to the cart, or increments its quantity if it already exists.\n- **201** \u00e2\u20ac\u201d item did not exist (created).\n- **200** \u00e2\u20ac\u201d item already existed (quantity incremented).\n- If sent without `X-Cart-Token` and without auth, a new UUID is generated and returned in `cart_token` \u00e2\u20ac\u201d save it for subsequent requests.\n- The test script auto-saves the returned `cart_token` to `{{cartToken}}`."
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created \u00e2\u20ac\u201d new guest cart",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\":\"01ARYZ6S41TPTWDRA8XHBJK1T\",\"quantity\":1}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cart"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"id\": 1,\n        \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n        \"name\": \"Matte Lipstick\",\n        \"slug\": \"matte-lipstick\",\n        \"thumb\": null,\n        \"quantity\": 1,\n        \"expires_at\": \"2026-03-03T11:00:00.000000Z\"\n    },\n    \"cart_token\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+            },
+            {
+              "name": "200 OK \u00e2\u20ac\u201d duplicate (quantity incremented)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Cart-Token",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\":\"01ARYZ6S41TPTWDRA8XHBJK1T\",\"quantity\":1}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cart"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"id\": 1,\n        \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n        \"name\": \"Matte Lipstick\",\n        \"slug\": \"matte-lipstick\",\n        \"thumb\": null,\n        \"quantity\": 2,\n        \"expires_at\": \"2026-03-03T11:05:00.000000Z\"\n    },\n    \"cart_token\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+            },
+            {
+              "name": "422 Invalid product_id",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\":\"nonexistent-id\",\"quantity\":1}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cart"
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"The selected product id is invalid.\",\n    \"errors\": {\n        \"product_id\": [\"The selected product id is invalid.\"]\n    }\n}"
+            }
+          ]
         },
         {
-          "name": "Update Vendor",
+          "name": "Update Cart Item",
           "request": {
-            "method": "PUT",
+            "method": "PATCH",
             "header": [
               {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
                 "key": "Accept",
                 "value": "application/json"
               },
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "X-Cart-Token",
+                "value": "{{cartToken}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"John's Updated Store\",\n    \"business_name\": \"John's Premium Fashion\",\n    \"phone\": \"+0987654321\",\n    \"is_active\": true,\n    \"city\": \"Los Angeles\",\n    \"state\": \"CA\"\n}"
+              "raw": "{\n    \"quantity\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/vendors/:vendor_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "vendors", ":vendor_id"],
-              "variable": [
-                {
-                  "key": "vendor_id",
-                  "value": "",
-                  "description": "Vendor ULID"
-                }
-              ]
+              "raw": "{{baseUrl}}/cart/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "{{productId}}"]
             },
-            "description": "Update an existing vendor. Requires `Update_Vendor` permission. All fields are optional."
+            "description": "Sets the quantity of an existing cart item. Resets the 1-hour expiry timer."
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Cart-Token",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"quantity\":3}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cart/01ARYZ6S41TPTWDRA8XHBJK1T"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"id\": 1,\n        \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n        \"name\": \"Matte Lipstick\",\n        \"slug\": \"matte-lipstick\",\n        \"thumb\": null,\n        \"quantity\": 3,\n        \"expires_at\": \"2026-03-03T11:10:00.000000Z\"\n    },\n    \"cart_token\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Cart-Token",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"quantity\":3}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cart/nonexistent-product-id"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"No query results for model [App\\\\Infrastructure\\\\Persistence\\\\Eloquent\\\\Models\\\\CartItem].\"\n}"
+            }
+          ]
         },
         {
-          "name": "Delete Vendor",
+          "name": "Remove Cart Item",
           "request": {
             "method": "DELETE",
             "header": [
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Cart-Token",
+                "value": "{{cartToken}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/v1/vendors/:vendor_id",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "vendors", ":vendor_id"],
-              "variable": [
+              "raw": "{{baseUrl}}/cart/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "{{productId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Cart-Token",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart/01ARYZ6S41TPTWDRA8XHBJK1T"
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Cart-Token",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart/nonexistent-id"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
                 {
-                  "key": "vendor_id",
-                  "value": "",
-                  "description": "Vendor ULID"
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"No query results for model [App\\\\Infrastructure\\\\Persistence\\\\Eloquent\\\\Models\\\\CartItem].\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Cart-Token",
+                "value": "{{cartToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cart",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart"]
+            },
+            "description": "Removes all items from the cart (for the given user or guest token)."
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Cart-Token",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/cart"
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Merge Guest Cart",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
                 }
               ]
             },
-            "description": "Delete a vendor. Requires `Delete_Vendor` permission."
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"cart_token\": \"{{cartToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cart/merge",
+              "host": ["{{baseUrl}}"],
+              "path": ["cart", "merge"]
+            },
+            "description": "Merges a guest cart into the authenticated user's cart. Shared products have their quantities summed. Guest rows are deleted after merging. Returns the user's full cart after the merge."
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"cart_token\":\"550e8400-e29b-41d4-a716-446655440000\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cart/merge"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": 3,\n            \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Matte Lipstick\",\n            \"slug\": \"matte-lipstick\",\n            \"thumb\": null,\n            \"quantity\": 4,\n            \"expires_at\": \"2026-03-03T11:00:00.000000Z\"\n        }\n    ],\n    \"cart_token\": null\n}"
+            },
+            {
+              "name": "401 Unauthenticated",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"cart_token\":\"550e8400-e29b-41d4-a716-446655440000\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/cart/merge"
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+            }
+          ]
         }
-      ],
-      "description": "Vendor management endpoints. Note: Vendor routes may not yet be registered in routes/api.php."
+      ]
+    },
+    {
+      "name": "Saved Items",
+      "description": "User wishlist / saved products. All routes require `Authorization: Bearer {{authToken}}`.",
+      "item": [
+        {
+          "name": "List Saved Items",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/saved-items",
+              "host": ["{{baseUrl}}"],
+              "path": ["saved-items"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/saved-items"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Matte Lipstick\",\n            \"slug\": \"matte-lipstick\",\n            \"thumb\": null\n        }\n    ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Saved Item",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_id\": \"{{productId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/saved-items",
+              "host": ["{{baseUrl}}"],
+              "path": ["saved-items"]
+            },
+            "description": "Saves a product. Returns 201 if newly saved, 200 if already saved (idempotent)."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\":\"01ARYZ6S41TPTWDRA8XHBJK1T\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saved-items"
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"id\": 1,\n        \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n        \"name\": \"Matte Lipstick\",\n        \"slug\": \"matte-lipstick\",\n        \"thumb\": null\n    }\n}"
+            },
+            {
+              "name": "200 OK \u00e2\u20ac\u201d Already saved",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_id\":\"01ARYZ6S41TPTWDRA8XHBJK1T\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saved-items"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"id\": 1,\n        \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n        \"name\": \"Matte Lipstick\",\n        \"slug\": \"matte-lipstick\",\n        \"thumb\": null\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Sync Saved Items",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"product_ids\": [\n        \"{{productId}}\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/saved-items/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["saved-items", "sync"]
+            },
+            "description": "Bulk-adds products to saved items. Only inserts products not already saved \u00e2\u20ac\u201d existing saved items are left unchanged. Returns the full saved items list after sync. Max 200 product IDs per request."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"product_ids\":[\"01ARYZ6S41TPTWDRA8XHBJK1T\",\"01ARYZ6S41TPTWDRA8XHBJK2P\"]}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/saved-items/sync"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK1T\",\n            \"name\": \"Matte Lipstick\",\n            \"slug\": \"matte-lipstick\",\n            \"thumb\": null\n        },\n        {\n            \"id\": 2,\n            \"product_id\": \"01ARYZ6S41TPTWDRA8XHBJK2P\",\n            \"name\": \"Gloss Shine\",\n            \"slug\": \"gloss-shine\",\n            \"thumb\": null\n        }\n    ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Remove Saved Item",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/saved-items/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["saved-items", "{{productId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/saved-items/01ARYZ6S41TPTWDRA8XHBJK1T"
+                }
+              },
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer 1|abc123"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/saved-items/nonexistent-id"
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"No query results for model [App\\\\Infrastructure\\\\Persistence\\\\Eloquent\\\\Models\\\\SavedItem].\"\n}"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

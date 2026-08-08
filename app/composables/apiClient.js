@@ -12,7 +12,7 @@ export function useApiClient(clientOptions) {
 
   async function request(url, options = {}) {
     const headers = {
-      "Content-Type": "application/json",
+      ...(!(options.body instanceof FormData) && { "Content-Type": "application/json" }),
       Accept: "application/json",
       ...options.headers,
     };
@@ -64,9 +64,75 @@ export function useApiClient(clientOptions) {
     });
   }
 
+  function patch(url, body) {
+    return request(url, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
   function del(url) {
     return request(url, { method: "DELETE" });
   }
 
-  return { get, post, put, del };
+  function postFormData(url, formData) {
+    return request(url, {
+      method: "POST",
+      body: formData,
+      headers: { Accept: "application/json" },
+    });
+  }
+
+  function putFormData(url, formData) {
+    formData.append("_method", "PUT");
+    return request(url, {
+      method: "POST",
+      body: formData,
+      headers: { Accept: "application/json" },
+    });
+  }
+
+  async function download(url) {
+    const authValue = clientOptions?.authToken ?? token.value;
+    const response = await fetch(`${config.public.apiBase}${url}`, {
+      method: "GET",
+      headers: {
+        Accept: "text/csv",
+        ...(authValue && { Authorization: `Bearer ${authValue}` }),
+      },
+    });
+
+    if (response.status === 401) {
+      token.value = null;
+      navigateTo("/");
+      throw new ApiError("Unauthorized", 401);
+    }
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new ApiError(
+        body.message || `Download failed: ${response.status}`,
+        response.status,
+        body.errors
+      );
+    }
+
+    const disposition = response.headers.get("content-disposition") || "";
+    const filenameMatch = disposition.match(/filename\*?=(?:UTF-8''|["'])?([^"';]+)/i);
+    const filename = filenameMatch
+      ? decodeURIComponent(filenameMatch[1])
+      : "newsletter-subscribers.csv";
+    const objectUrl = URL.createObjectURL(await response.blob());
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(objectUrl);
+
+    return filename;
+  }
+
+  return { get, post, put, patch, del, postFormData, putFormData, download };
 }
