@@ -54,11 +54,35 @@ function toggleSettings() {
         </NuxtLink>
 
         <NuxtLink
+          to="/newsletter-subscribers"
+          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
+        >
+          <span>Newsletter</span>
+          <i class="pi pi-envelope" />
+        </NuxtLink>
+
+        <NuxtLink
           to="/orders"
           class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
         >
           <span>Orders</span>
           <i class="pi pi-shopping-bag" />
+        </NuxtLink>
+
+        <NuxtLink
+          to="/storefront-campaigns"
+          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
+        >
+          <span>Campaigns</span>
+          <i class="pi pi-megaphone" />
+        </NuxtLink>
+
+        <NuxtLink
+          to="/discount-codes"
+          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
+        >
+          <span>Discount Codes</span>
+          <i class="pi pi-ticket" />
         </NuxtLink>
 
         <!-- Shipping group -->
