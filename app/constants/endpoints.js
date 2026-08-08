@@ -81,6 +81,12 @@ export const CUSTOMERS = {
   SHOW: (id) => `/customers/${id}`,
 };
 
+export const NEWSLETTER_SUBSCRIBERS = {
+  LIST: "/newsletter/subscribers",
+  SHOW: (id) => `/newsletter/subscribers/${id}`,
+  EXPORT: "/newsletter/subscribers/export",
+};
+
 export const SKU_ATTRIBUTE_CODES = {
   LIST: "/sku-attribute-code",
   CREATE: "/sku-attribute-code",
@@ -94,4 +100,24 @@ export const PAYMENT_METHODS = {
   SHOW:   (id) => `/payment-methods/${id}`,
   UPDATE: (id) => `/payment-methods/${id}`,
   DELETE: (id) => `/payment-methods/${id}`,
+};
+
+export const STOREFRONT_CAMPAIGNS = {
+  LIST: (storefront) => `/storefronts/${storefront}/campaigns`,
+  CREATE: (storefront) => `/storefronts/${storefront}/campaigns`,
+  SHOW: (storefront, id) => `/storefronts/${storefront}/campaigns/${id}`,
+  UPDATE: (storefront, id) => `/storefronts/${storefront}/campaigns/${id}`,
+  DELETE: (storefront, id) => `/storefronts/${storefront}/campaigns/${id}`,
+  ENABLE: (storefront, id) => `/storefronts/${storefront}/campaigns/${id}/enable`,
+  DISABLE: (storefront, id) => `/storefronts/${storefront}/campaigns/${id}/disable`,
+};
+
+export const DISCOUNT_CODES = {
+  LIST: "/discount-codes",
+  CREATE: "/discount-codes",
+  SHOW: (id) => `/discount-codes/${id}`,
+  UPDATE: (id) => `/discount-codes/${id}`,
+  ACTIVATE: (id) => `/discount-codes/${id}/activate`,
+  DEACTIVATE: (id) => `/discount-codes/${id}/deactivate`,
+  DUPLICATE: (id) => `/discount-codes/${id}/duplicate`,
 };
