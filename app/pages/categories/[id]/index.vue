@@ -1,5 +1,9 @@
 <script setup>
 import { useCategoryStore } from "~/stores/category";
+import {
+  DEFAULT_ANNOUNCEMENT_PRIMARY,
+  DEFAULT_ANNOUNCEMENT_SECONDARY,
+} from "~/stores/storefrontAnnouncement";
 
 const route = useRoute();
 const categoryStore = useCategoryStore();
@@ -16,6 +20,13 @@ function formatDate(value) {
 }
 
 const category = computed(() => categoryStore.category);
+const isRootCategory = computed(() => category.value && !category.value.parent_id);
+const announcementPrimary = computed(() =>
+  category.value?.announcement_primary_text || DEFAULT_ANNOUNCEMENT_PRIMARY,
+);
+const announcementSecondary = computed(() =>
+  category.value?.announcement_secondary_text || DEFAULT_ANNOUNCEMENT_SECONDARY,
+);
 
 onMounted(() => {
   categoryStore.fetchCategory(id);
@@ -131,6 +142,39 @@ onMounted(() => {
                 <p class="font-medium text-slate-900">
                   {{ formatDate(category.updated_at) }}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Storefront Announcement Card -->
+          <div v-if="isRootCategory" class="bg-white rounded-lg border border-slate-200 p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 class="text-lg font-semibold text-slate-800 m-0">
+                Storefront Header Announcement
+              </h2>
+              <NuxtLink :to="`/settings/storefront-announcement?storefront=${category.id}`">
+                <Button label="Manage" icon="pi pi-megaphone" size="small" />
+              </NuxtLink>
+            </div>
+
+            <div class="rounded-lg overflow-hidden border border-slate-200 mb-4">
+              <div class="bg-slate-950 text-white px-4 py-3">
+                <div class="flex items-center justify-center gap-4 text-center text-sm font-medium">
+                  <span>{{ announcementPrimary }}</span>
+                  <span class="hidden md:inline-block h-4 w-px bg-white/35" />
+                  <span class="hidden md:inline text-white/80">{{ announcementSecondary }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              <div>
+                <span class="text-sm text-slate-500">Primary message</span>
+                <p class="font-medium text-slate-900">{{ announcementPrimary }}</p>
+              </div>
+              <div>
+                <span class="text-sm text-slate-500">Secondary message</span>
+                <p class="font-medium text-slate-900">{{ announcementSecondary }}</p>
               </div>
             </div>
           </div>

@@ -121,3 +121,35 @@ export const DISCOUNT_CODES = {
   DEACTIVATE: (id) => `/discount-codes/${id}/deactivate`,
   DUPLICATE: (id) => `/discount-codes/${id}/duplicate`,
 };
+
+export const CONTENT_PAGES = {
+  LIST: "/content-pages",
+  CREATE: "/content-pages",
+  SHOW: (id) => `/content-pages/${id}`,
+  UPDATE: (id) => `/content-pages/${id}`,
+  PUBLISH: (id) => `/content-pages/${id}/publish`,
+  UNPUBLISH: (id) => `/content-pages/${id}/unpublish`,
+  DUPLICATE: (id) => `/content-pages/${id}/duplicate`,
+  DELETE: (id) => `/content-pages/${id}`,
+};
+
+export const FAQ_CATEGORIES = {
+  LIST: "/faq-categories",
+  CREATE: "/faq-categories",
+  SHOW: (id) => `/faq-categories/${id}`,
+  UPDATE: (id) => `/faq-categories/${id}`,
+  DELETE: (id) => `/faq-categories/${id}`,
+  REORDER: "/faq-categories/reorder",
+};
+
+export const FAQS = {
+  LIST: "/faqs",
+  CREATE: "/faqs",
+  SHOW: (id) => `/faqs/${id}`,
+  UPDATE: (id) => `/faqs/${id}`,
+  PUBLISH: (id) => `/faqs/${id}/publish`,
+  UNPUBLISH: (id) => `/faqs/${id}/unpublish`,
+  DUPLICATE: (id) => `/faqs/${id}/duplicate`,
+  DELETE: (id) => `/faqs/${id}`,
+  REORDER: "/faqs/reorder",
+};
