@@ -2,10 +2,13 @@
 import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
+const route = useRoute();
 const sidebarCollapsed = shallowRef(false);
 const catalogueOpen = ref(false);
 const shippingOpen = ref(false);
-const settingsOpen = ref(false);
+const settingsOpen = ref(route.path.startsWith("/settings"));
+const contentOpen = ref(route.path.startsWith("/content"));
+const { can } = usePermissions();
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value;
@@ -21,6 +24,10 @@ function toggleShipping() {
 
 function toggleSettings() {
   settingsOpen.value = !settingsOpen.value;
+}
+
+function toggleContent() {
+  contentOpen.value = !contentOpen.value;
 }
 </script>
 
@@ -84,6 +91,42 @@ function toggleSettings() {
           <span>Discount Codes</span>
           <i class="pi pi-ticket" />
         </NuxtLink>
+
+        <!-- Content group -->
+        <button
+          v-if="can('View_ContentPage') || can('View_Faq') || can('View_FaqCategory')"
+          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
+          @click="toggleContent"
+        >
+          <span>Content</span>
+          <i class="pi" :class="contentOpen ? 'pi-chevron-down' : 'pi-chevron-right'" />
+        </button>
+        <div v-show="contentOpen" class="flex flex-col gap-1 pl-4">
+          <NuxtLink
+            v-if="can('View_ContentPage')"
+            to="/content/pages"
+            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
+          >
+            <span>Pages</span>
+            <i class="pi pi-file-edit" />
+          </NuxtLink>
+          <NuxtLink
+            v-if="can('View_Faq')"
+            to="/content/faqs"
+            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
+          >
+            <span>FAQs</span>
+            <i class="pi pi-question-circle" />
+          </NuxtLink>
+          <NuxtLink
+            v-if="can('View_FaqCategory')"
+            to="/content/faq-categories"
+            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
+          >
+            <span>FAQ Categories</span>
+            <i class="pi pi-list" />
+          </NuxtLink>
+        </div>
 
         <!-- Shipping group -->
         <button
@@ -192,6 +235,14 @@ function toggleSettings() {
           >
             <span>Payments</span>
             <i class="pi pi-credit-card" />
+          </NuxtLink>
+          <NuxtLink
+            v-if="can('View_Category') && can('Update_Category')"
+            to="/settings/storefront-announcement"
+            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
+          >
+            <span>Header Announcement</span>
+            <i class="pi pi-megaphone" />
           </NuxtLink>
         </div>
       </nav>
