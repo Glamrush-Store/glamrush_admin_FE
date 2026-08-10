@@ -50,8 +50,9 @@ export function useApiClient(clientOptions) {
     return request(url, { method: "GET" });
   }
 
-  function post(url, body) {
+  function post(url, body, options = {}) {
     return request(url, {
+      ...options,
       method: "POST",
       body: body ? JSON.stringify(body) : undefined,
     });

@@ -10,6 +10,10 @@ export const AUTH = {
 
 export const HEALTH = "/health";
 
+export const DASHBOARD = {
+  ANALYTICS: "/dashboard/analytics",
+};
+
 export const PRODUCTS = {
   LIST: "/products",
   CREATE: "/products",
@@ -68,6 +72,7 @@ export const SHIPMENTS = {
 
 export const ORDERS = {
   LIST: "/orders",
+  CREATE_MANUAL: "/orders/manual",
   SHOW: (id) => `/orders/${id}`,
   UPDATE_STATUS: (id) => `/orders/${id}/status`,
 };
@@ -79,6 +84,27 @@ export const MEDIA = {
 export const CUSTOMERS = {
   LIST: "/customers",
   SHOW: (id) => `/customers/${id}`,
+};
+
+export const USERS = {
+  LIST: "/users",
+  CREATE: "/users",
+  SHOW: (id) => `/users/${id}`,
+  UPDATE: (id) => `/users/${id}`,
+  DELETE: (id) => `/users/${id}`,
+};
+
+export const ROLES = {
+  LIST: "/roles",
+  CREATE: "/roles",
+  SHOW: (id) => `/roles/${id}`,
+  UPDATE: (id) => `/roles/${id}`,
+  DELETE: (id) => `/roles/${id}`,
+  SYNC_PERMISSIONS: (id) => `/roles/${id}/permissions`,
+};
+
+export const PERMISSIONS = {
+  LIST: "/permissions",
 };
 
 export const NEWSLETTER_SUBSCRIBERS = {
