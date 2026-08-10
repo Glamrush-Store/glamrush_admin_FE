@@ -3,6 +3,7 @@ import { useOrderStore } from "~/stores/order";
 import { ORDER_STATUS_FILTER_OPTIONS, ORDER_STATUS_SEVERITY } from "~/constants/orders";
 
 const orderStore = useOrderStore();
+const { can } = usePermissions();
 
 const orderNumberInput = ref("");
 const emailInput = ref("");
@@ -105,6 +106,9 @@ onMounted(() => {
   <div>
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold text-slate-900">Orders</h1>
+      <NuxtLink v-if="can('Create_Order')" to="/orders/create-manual">
+        <Button label="Record Offline Sale" icon="pi pi-plus" />
+      </NuxtLink>
     </div>
 
     <Message v-if="orderStore.error" severity="error" class="mb-4">

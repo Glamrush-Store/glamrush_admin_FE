@@ -8,6 +8,7 @@ const catalogueOpen = ref(false);
 const shippingOpen = ref(false);
 const settingsOpen = ref(route.path.startsWith("/settings"));
 const contentOpen = ref(route.path.startsWith("/content"));
+const accessOpen = ref(route.path.startsWith("/users") || route.path.startsWith("/roles"));
 const { can } = usePermissions();
 
 function toggleSidebar() {
@@ -28,6 +29,10 @@ function toggleSettings() {
 
 function toggleContent() {
   contentOpen.value = !contentOpen.value;
+}
+
+function toggleAccess() {
+  accessOpen.value = !accessOpen.value;
 }
 </script>
 
@@ -91,6 +96,34 @@ function toggleContent() {
           <span>Discount Codes</span>
           <i class="pi pi-ticket" />
         </NuxtLink>
+
+        <!-- Access Control group -->
+        <button
+          v-if="can('ViewAny_User') || can('ViewAny_Role')"
+          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
+          @click="toggleAccess"
+        >
+          <span>Access Control</span>
+          <i class="pi" :class="accessOpen ? 'pi-chevron-down' : 'pi-chevron-right'" />
+        </button>
+        <div v-show="accessOpen" class="flex flex-col gap-1 pl-4">
+          <NuxtLink
+            v-if="can('ViewAny_User')"
+            to="/users"
+            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
+          >
+            <span>Users</span>
+            <i class="pi pi-users" />
+          </NuxtLink>
+          <NuxtLink
+            v-if="can('ViewAny_Role')"
+            to="/roles"
+            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
+          >
+            <span>Roles & Permissions</span>
+            <i class="pi pi-shield" />
+          </NuxtLink>
+        </div>
 
         <!-- Content group -->
         <button
