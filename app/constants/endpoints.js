@@ -49,6 +49,11 @@ export const SHIPPING_ZONES = {
   DELETE: (id) => `/shipping/zones/${id}`,
 };
 
+export const SHIPPING_LOCATION_OPTIONS = {
+  COUNTRIES: "/shipping/location-options/countries",
+  COUNTRY: (country) => `/shipping/location-options/countries/${country}`,
+};
+
 export const SHIPPING_METHODS = {
   LIST:   "/shipping/methods",
   CREATE: "/shipping/methods",

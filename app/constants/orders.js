@@ -26,3 +26,12 @@ export const ORDER_STATUS_SEVERITY = {
   failed: "danger",
   refunded: "secondary",
 };
+
+export const PAYMENT_STATUS_SEVERITY = {
+  pending: "warn",
+  initialized: "info",
+  pending_on_delivery: "warn",
+  paid: "success",
+  failed: "danger",
+  refunded: "secondary",
+};
