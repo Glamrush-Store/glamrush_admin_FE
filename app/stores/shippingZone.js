@@ -1,14 +1,19 @@
 import { defineStore } from "pinia";
-import { SHIPPING_ZONES } from "~/constants/endpoints";
+import { SHIPPING_LOCATION_OPTIONS, SHIPPING_ZONES } from "~/constants/endpoints";
 
 export const useShippingZoneStore = defineStore("shippingZone", () => {
   const zones = ref([]);
   const zone = ref(null);
+  const countries = ref([]);
+  const countryLocations = ref(null);
   const pagination = ref({ current_page: 1, last_page: 1, per_page: 15, total: 0 });
   const filters = ref({ name: "", country: "", is_active: null });
   const sorting = ref({ sort_by: null, sort_dir: null });
   const loading = ref(false);
   const zoneLoading = ref(false);
+  const countriesLoading = ref(false);
+  const locationsLoading = ref(false);
+  const locationError = ref("");
 
   function buildQueryString() {
     const params = new URLSearchParams();
@@ -52,6 +57,50 @@ export const useShippingZoneStore = defineStore("shippingZone", () => {
     }
   }
 
+  async function fetchCountries() {
+    countriesLoading.value = true;
+    locationError.value = "";
+    try {
+      const api = useApiClient();
+      const response = await api.get(SHIPPING_LOCATION_OPTIONS.COUNTRIES);
+      countries.value = Array.isArray(response.data) ? response.data : [];
+      return countries.value;
+    } catch (error) {
+      locationError.value = error.message || "Unable to load countries";
+      countries.value = [];
+      throw error;
+    } finally {
+      countriesLoading.value = false;
+    }
+  }
+
+  async function fetchCountryLocations(country) {
+    if (!country) {
+      countryLocations.value = null;
+      return null;
+    }
+
+    locationsLoading.value = true;
+    locationError.value = "";
+    try {
+      const api = useApiClient();
+      const response = await api.get(SHIPPING_LOCATION_OPTIONS.COUNTRY(country));
+      countryLocations.value = response.data || { states: [], cities: [] };
+      return countryLocations.value;
+    } catch (error) {
+      locationError.value = error.message || "Unable to load states and cities";
+      countryLocations.value = null;
+      throw error;
+    } finally {
+      locationsLoading.value = false;
+    }
+  }
+
+  function clearCountryLocations() {
+    countryLocations.value = null;
+    locationError.value = "";
+  }
+
   async function createZone(data) {
     const api = useApiClient();
     return await api.post(SHIPPING_ZONES.CREATE, data);
@@ -93,8 +142,8 @@ export const useShippingZoneStore = defineStore("shippingZone", () => {
   }
 
   return {
-    zones, zone, pagination, filters, sorting, loading, zoneLoading,
-    fetchZones, fetchZone, createZone, updateZone, deleteZone,
+    zones, zone, countries, countryLocations, pagination, filters, sorting, loading, zoneLoading, countriesLoading, locationsLoading, locationError,
+    fetchZones, fetchZone, fetchCountries, fetchCountryLocations, clearCountryLocations, createZone, updateZone, deleteZone,
     setFilter, setPage, setSorting, resetFilters,
   };
 });

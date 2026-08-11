@@ -1,6 +1,10 @@
 <script setup>
 import { useOrderStore } from "~/stores/order";
-import { ORDER_STATUS_FILTER_OPTIONS, ORDER_STATUS_SEVERITY } from "~/constants/orders";
+import {
+  ORDER_STATUS_FILTER_OPTIONS,
+  ORDER_STATUS_SEVERITY,
+  PAYMENT_STATUS_SEVERITY,
+} from "~/constants/orders";
 
 const orderStore = useOrderStore();
 const { can } = usePermissions();
@@ -193,6 +197,14 @@ onMounted(() => {
       <Column field="status" header="Status">
         <template #body="{ data }">
           <Tag :value="data.status || '-'" :severity="ORDER_STATUS_SEVERITY[data.status] || 'secondary'" />
+        </template>
+      </Column>
+      <Column field="payment_status" header="Payment">
+        <template #body="{ data }">
+          <Tag
+            :value="data.payment_status || 'Not initialized'"
+            :severity="PAYMENT_STATUS_SEVERITY[data.payment_status] || 'secondary'"
+          />
         </template>
       </Column>
       <Column header="Total">

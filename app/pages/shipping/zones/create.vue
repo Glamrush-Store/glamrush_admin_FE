@@ -23,6 +23,34 @@ const isActive = ref(true);
 const loading = ref(false);
 const serverError = ref("");
 
+const stateOptions = computed(() => zoneStore.countryLocations?.states || []);
+const cityOptions = computed(() => {
+  const cities = zoneStore.countryLocations?.cities || [];
+  if (!state.value) return cities;
+  return cities.filter((option) => option.state_value === state.value);
+});
+
+async function onCountryChange(countryCode) {
+  state.value = "";
+  city.value = "";
+
+  if (!countryCode) {
+    zoneStore.clearCountryLocations();
+    return;
+  }
+
+  try {
+    await zoneStore.fetchCountryLocations(countryCode);
+  } catch (e) {
+    serverError.value = e instanceof ApiError ? e.message : "Unable to load states and cities";
+  }
+}
+
+function onStateChange(value) {
+  state.value = value || "";
+  city.value = "";
+}
+
 async function onSubmit({ valid, values }) {
   if (!valid) return;
   loading.value = true;
@@ -45,6 +73,14 @@ async function onSubmit({ valid, values }) {
     loading.value = false;
   }
 }
+
+onMounted(async () => {
+  try {
+    await zoneStore.fetchCountries();
+  } catch (e) {
+    serverError.value = e instanceof ApiError ? e.message : "Unable to load countries";
+  }
+});
 </script>
 
 <template>
@@ -72,8 +108,20 @@ async function onSubmit({ valid, values }) {
           </div>
 
           <div class="flex flex-col gap-1">
-            <label for="country" class="text-sm font-medium text-slate-700">Country Code *</label>
-            <InputText id="country" name="country" placeholder="e.g. NG" fluid />
+            <label for="country" class="text-sm font-medium text-slate-700">Country *</label>
+            <Select
+              id="country"
+              name="country"
+              :options="zoneStore.countries"
+              option-label="label"
+              option-value="value"
+              placeholder="Select country"
+              :loading="zoneStore.countriesLoading"
+              :disabled="zoneStore.countriesLoading"
+              filter
+              fluid
+              @update:model-value="onCountryChange"
+            />
             <Message v-if="$form.country?.invalid" severity="error" size="small" variant="simple">
               {{ $form.country.error?.message }}
             </Message>
@@ -81,12 +129,37 @@ async function onSubmit({ valid, values }) {
 
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-700">State</label>
-            <InputText v-model="state" placeholder="e.g. Lagos" fluid />
+            <Select
+              :model-value="state"
+              :options="stateOptions"
+              option-label="label"
+              option-value="value"
+              placeholder="Select state"
+              :loading="zoneStore.locationsLoading"
+              :disabled="!$form.country?.value || zoneStore.locationsLoading"
+              :empty-message="zoneStore.countryLocations ? 'No states available' : 'Select a country first'"
+              show-clear
+              filter
+              fluid
+              @update:model-value="onStateChange"
+            />
           </div>
 
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-700">City</label>
-            <InputText v-model="city" placeholder="e.g. Lagos Island" fluid />
+            <Select
+              v-model="city"
+              :options="cityOptions"
+              option-label="label"
+              option-value="value"
+              placeholder="Select city"
+              :loading="zoneStore.locationsLoading"
+              :disabled="!$form.country?.value || zoneStore.locationsLoading"
+              :empty-message="zoneStore.countryLocations ? 'No cities available' : 'Select a country first'"
+              show-clear
+              filter
+              fluid
+            />
           </div>
 
           <div class="flex flex-col gap-1">
