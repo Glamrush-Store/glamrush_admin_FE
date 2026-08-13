@@ -133,6 +133,25 @@ export const PAYMENT_METHODS = {
   DELETE: (id) => `/payment-methods/${id}`,
 };
 
+export const PAYMENT_TRANSACTIONS = {
+  LIST: "/payment-transactions",
+};
+
+export const SITE_SETTINGS = {
+  CATEGORIES: {
+    LIST: "/settings/categories",
+    CREATE: "/settings/categories",
+    SHOW: (id) => `/settings/categories/${id}`,
+    UPDATE: (id) => `/settings/categories/${id}`,
+    DELETE: (id) => `/settings/categories/${id}`,
+  },
+  LIST: "/settings",
+  CREATE: "/settings",
+  SHOW: (id) => `/settings/${id}`,
+  UPDATE: (id) => `/settings/${id}`,
+  DELETE: (id) => `/settings/${id}`,
+};
+
 export const STOREFRONT_CAMPAIGNS = {
   LIST: (storefront) => `/storefronts/${storefront}/campaigns`,
   CREATE: (storefront) => `/storefronts/${storefront}/campaigns`,
