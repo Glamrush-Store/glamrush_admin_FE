@@ -12,6 +12,9 @@ const { can } = usePermissions();
 const orderNumberInput = ref("");
 const emailInput = ref("");
 const dateRange = ref(null);
+const lastCheckedAt = ref(null);
+const pollIntervalMs = 30000;
+let pollInterval = null;
 let orderSearchTimeout = null;
 let emailSearchTimeout = null;
 
@@ -63,6 +66,15 @@ function onPageChange(event) {
   orderStore.setPage(event.page + 1);
 }
 
+function formatTime(value) {
+  if (!value) return "Not checked yet";
+  return new Date(value).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 function formatDate(value) {
   if (!value) return "-";
   return new Date(value).toLocaleDateString("en-US", {
@@ -81,12 +93,19 @@ function formatPrice(value) {
   }).format(Number(value));
 }
 
-function getCustomerEmail(order) {
-  return order.email || order.customer_email || order.customer?.email || "-";
-}
+function getCustomerDisplay(order) {
+  const address = order.shipping_info?.shipping_address || order.shipping_address || {};
+  const shippingName = address.full_name || [
+    address.first_name,
+    address.last_name,
+  ].filter(Boolean).join(" ");
+  const customerInfo = order.customer_info || {};
 
-function getCustomerName(order) {
-  return order.customer_name || order.customer?.name || order.user?.name || "-";
+  return {
+    name: customerInfo.name || order.customer_name || order.customer?.name || order.user?.name || shippingName || "-",
+    email: customerInfo.email || order.email || order.customer_email || order.customer?.email || address.email || "-",
+    phone: customerInfo.phone || order.phone || order.customer_phone || order.customer?.phone || address.phone || "-",
+  };
 }
 
 function getOrderTotal(order) {
@@ -101,8 +120,27 @@ function getOrderNumber(order) {
   return order.order_number || order.number || "-";
 }
 
-onMounted(() => {
-  orderStore.fetchOrders();
+async function refreshOrders(options = {}) {
+  await orderStore.fetchOrders(options);
+  lastCheckedAt.value = new Date();
+}
+
+function pollOrders() {
+  if (document.hidden) return;
+  refreshOrders({ silent: true });
+}
+
+onMounted(async () => {
+  await refreshOrders();
+  pollInterval = setInterval(pollOrders, pollIntervalMs);
+  document.addEventListener("visibilitychange", pollOrders);
+});
+
+onUnmounted(() => {
+  clearTimeout(orderSearchTimeout);
+  clearTimeout(emailSearchTimeout);
+  clearInterval(pollInterval);
+  document.removeEventListener("visibilitychange", pollOrders);
 });
 </script>
 
@@ -110,9 +148,23 @@ onMounted(() => {
   <div>
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold text-slate-900">Orders</h1>
-      <NuxtLink v-if="can('Create_Order')" to="/orders/create-manual">
-        <Button label="Record Offline Sale" icon="pi pi-plus" />
-      </NuxtLink>
+      <div class="flex flex-wrap items-center justify-end gap-3">
+        <div class="text-right text-xs text-slate-500">
+          <p class="m-0">Auto-refreshes every 30s</p>
+          <p class="m-0">Last checked {{ formatTime(lastCheckedAt) }}</p>
+        </div>
+        <Button
+          icon="pi pi-refresh"
+          label="Refresh"
+          severity="secondary"
+          outlined
+          :loading="orderStore.refreshing"
+          @click="refreshOrders({ silent: true })"
+        />
+        <NuxtLink v-if="can('Create_Order')" to="/orders/create-manual">
+          <Button label="Record Offline Sale" icon="pi pi-plus" />
+        </NuxtLink>
+      </div>
     </div>
 
     <Message v-if="orderStore.error" severity="error" class="mb-4">
@@ -189,10 +241,13 @@ onMounted(() => {
         <template #body="{ data }">{{ getOrderNumber(data) }}</template>
       </Column>
       <Column header="Customer">
-        <template #body="{ data }">{{ getCustomerName(data) }}</template>
+        <template #body="{ data }">{{ getCustomerDisplay(data).name }}</template>
       </Column>
       <Column header="Email">
-        <template #body="{ data }">{{ getCustomerEmail(data) }}</template>
+        <template #body="{ data }">{{ getCustomerDisplay(data).email }}</template>
+      </Column>
+      <Column header="Phone">
+        <template #body="{ data }">{{ getCustomerDisplay(data).phone }}</template>
       </Column>
       <Column field="status" header="Status">
         <template #body="{ data }">

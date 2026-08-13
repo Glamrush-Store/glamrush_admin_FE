@@ -1,6 +1,11 @@
 <script setup>
 import { useProductStore } from "~/stores/product";
 import { useConfirm } from "primevue/useconfirm";
+import {
+  getCategorySequence,
+  getPrimaryProductCategory,
+  getProductCategories,
+} from "~/utils/categoryTree";
 
 const route = useRoute();
 const productStore = useProductStore();
@@ -60,6 +65,8 @@ async function onArchive() {
 }
 
 const product = computed(() => productStore.product);
+const primaryCategory = computed(() => getPrimaryProductCategory(product.value));
+const productCategories = computed(() => getProductCategories(product.value));
 
 // --- Variant detail modal ---
 const variantModalVisible = ref(false);
@@ -208,9 +215,9 @@ onMounted(() => {
                 </p>
               </div>
               <div>
-                <span class="text-sm text-slate-500">Category</span>
+                <span class="text-sm text-slate-500">Primary Category</span>
                 <p class="font-medium text-slate-900">
-                  {{ product.category?.name || "—" }}
+                  {{ primaryCategory?.name || "—" }}
                 </p>
               </div>
               <div>
@@ -341,6 +348,31 @@ onMounted(() => {
       </div>
 
       <!-- Full-width cards below the grid -->
+
+      <!-- Categories Card -->
+      <div class="mt-6 bg-white rounded-lg border border-slate-200 p-6">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Categories</h2>
+        <div v-if="productCategories.length > 0" class="flex flex-wrap gap-2">
+          <div
+            v-for="category in productCategories"
+            :key="category.id"
+            class="flex items-center gap-2 rounded border border-slate-200 px-3 py-2"
+          >
+            <span class="font-medium text-slate-900">{{ category.name }}</span>
+            <Tag
+              v-if="String(category.id) === String(primaryCategory?.id)"
+              value="Primary"
+              severity="success"
+            />
+            <Tag
+              v-if="getCategorySequence(category) !== null"
+              :value="`#${getCategorySequence(category)}`"
+              severity="secondary"
+            />
+          </div>
+        </div>
+        <p v-else class="font-medium text-slate-900">—</p>
+      </div>
 
       <!-- Descriptions Card -->
       <div class="mt-6 bg-white rounded-lg border border-slate-200 p-6">

@@ -4,35 +4,142 @@ import { useAuthStore } from "~/stores/auth";
 const authStore = useAuthStore();
 const route = useRoute();
 const sidebarCollapsed = shallowRef(false);
-const catalogueOpen = ref(false);
-const shippingOpen = ref(false);
-const settingsOpen = ref(route.path.startsWith("/settings"));
-const contentOpen = ref(route.path.startsWith("/content"));
-const accessOpen = ref(route.path.startsWith("/users") || route.path.startsWith("/roles"));
 const { can } = usePermissions();
+const menuOpen = reactive({
+  orders: route.path.startsWith("/orders") || route.path.startsWith("/payment-transactions"),
+  catalog: route.path.startsWith("/products")
+    || route.path.startsWith("/categories")
+    || route.path.startsWith("/brands")
+    || route.path.startsWith("/vendors")
+    || route.path.startsWith("/collections")
+    || route.path.startsWith("/discount-codes"),
+  content: route.path.startsWith("/content")
+    || route.path.startsWith("/storefront-campaigns")
+    || route.path.startsWith("/newsletter-subscribers"),
+  settings: route.path.startsWith("/settings")
+    || route.path.startsWith("/shipping")
+    || route.path.startsWith("/shipments")
+    || route.path.startsWith("/users")
+    || route.path.startsWith("/roles"),
+});
+
+const navItems = [
+  { type: "link", label: "Dashboard", to: "/dashboard", icon: "pi pi-home", permission: "View_Dashboard" },
+  { type: "link", label: "Customers", to: "/customers", icon: "pi pi-users", permission: "View_Customer" },
+  {
+    type: "group",
+    key: "orders",
+    label: "Orders",
+    icon: "pi pi-shopping-bag",
+    children: [
+      { label: "Orders", to: "/orders", icon: "pi pi-shopping-bag", permission: "View_Order" },
+      { label: "Transactions", to: "/payment-transactions", icon: "pi pi-credit-card", permission: "View_PaymentTransaction" },
+    ],
+  },
+  {
+    type: "group",
+    key: "catalog",
+    label: "Catalog",
+    icon: "pi pi-box",
+    children: [
+      { label: "Products", to: "/products", icon: "pi pi-box", permission: "View_Product" },
+      { label: "Categories", to: "/categories", icon: "pi pi-tags", permission: "View_Category" },
+      { label: "Brands", to: "/brands", icon: "pi pi-star", permission: "View_Brand" },
+      { label: "Vendors", to: "/vendors", icon: "pi pi-truck", permission: "View_Vendor" },
+      { label: "Collections", to: "/collections", icon: "pi pi-objects-column", permission: "View_Category" },
+      { label: "Discount Codes", to: "/discount-codes", icon: "pi pi-ticket", permission: "View_Discount" },
+    ],
+  },
+  {
+    type: "group",
+    key: "content",
+    label: "Content",
+    icon: "pi pi-file-edit",
+    children: [
+      { label: "Pages", to: "/content/pages", icon: "pi pi-file-edit", permission: "View_ContentPage" },
+      { label: "FAQs", to: "/content/faqs", icon: "pi pi-question-circle", permission: "View_Faq" },
+      { label: "FAQ Categories", to: "/content/faq-categories", icon: "pi pi-list", permission: "View_FaqCategory" },
+      { label: "Campaigns", to: "/storefront-campaigns", icon: "pi pi-megaphone", permission: "ViewAny_StorefrontCampaign" },
+      { label: "Newsletter", to: "/newsletter-subscribers", icon: "pi pi-envelope", permission: "ViewAny_NewsletterSubscriber" },
+    ],
+  },
+  {
+    type: "group",
+    key: "settings",
+    label: "Settings",
+    icon: "pi pi-cog",
+    children: [
+      { label: "Header Announcement", to: "/settings/storefront-announcement", icon: "pi pi-megaphone", permissionsAll: ["View_Category", "Update_Category"] },
+      { label: "Attribute Codes", to: "/settings/attribute-codes", icon: "pi pi-list", permissionsAny: ["View_SkuAttributeCode", "View_Vendor"] },
+      {
+        label: "Shipping",
+        icon: "pi pi-truck",
+        children: [
+          { label: "Zones", to: "/shipping/zones", icon: "pi pi-map-marker", permission: "View_Shipment" },
+          { label: "Methods", to: "/shipping/methods", icon: "pi pi-truck", permission: "View_Shipment" },
+          { label: "Rates", to: "/shipping/rates", icon: "pi pi-receipt", permission: "View_Shipment" },
+          { label: "Shipments", to: "/shipments", icon: "pi pi-send", permission: "View_Shipment" },
+        ],
+      },
+      {
+        label: "Payments",
+        icon: "pi pi-credit-card",
+        children: [
+          { label: "Payment Methods", to: "/settings/payment-methods", icon: "pi pi-credit-card", permission: "View_PaymentMethod" },
+        ],
+      },
+      {
+        label: "Access Control",
+        icon: "pi pi-shield",
+        children: [
+          { label: "Users", to: "/users", icon: "pi pi-users", permission: "ViewAny_User" },
+          { label: "Roles & Permissions", to: "/roles", icon: "pi pi-shield", permission: "ViewAny_Role" },
+        ],
+      },
+      {
+        label: "Admin",
+        icon: "pi pi-sliders-h",
+        children: [
+          { label: "Site Settings", to: "/settings/site-settings", icon: "pi pi-sliders-h", permission: "View_Setting" },
+        ],
+      },
+    ],
+  },
+];
+
+const topLinkClass = "flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap";
+const topButtonClass = `${topLinkClass} w-full border-none cursor-pointer`;
+const childLinkClass = "flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm";
+const childGroupClass = "px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400";
+
+function hasAccess(item) {
+  if (item.permission) return can(item.permission);
+  if (item.permissionsAll) return item.permissionsAll.every((permission) => can(permission));
+  if (item.permissionsAny) return item.permissionsAny.some((permission) => can(permission));
+  return true;
+}
+
+function filterMenuItems(items) {
+  return items
+    .map((item) => {
+      if (!item.children) return hasAccess(item) ? item : null;
+
+      const children = filterMenuItems(item.children);
+      if (!children.length || !hasAccess(item)) return null;
+
+      return { ...item, children };
+    })
+    .filter(Boolean);
+}
+
+const visibleNavItems = computed(() => filterMenuItems(navItems));
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value;
 }
 
-function toggleCatalogue() {
-  catalogueOpen.value = !catalogueOpen.value;
-}
-
-function toggleShipping() {
-  shippingOpen.value = !shippingOpen.value;
-}
-
-function toggleSettings() {
-  settingsOpen.value = !settingsOpen.value;
-}
-
-function toggleContent() {
-  contentOpen.value = !contentOpen.value;
-}
-
-function toggleAccess() {
-  accessOpen.value = !accessOpen.value;
+function toggleMenu(key) {
+  menuOpen[key] = !menuOpen[key];
 }
 </script>
 
@@ -49,235 +156,57 @@ function toggleAccess() {
         </h2>
       </div>
       <nav class="flex flex-col p-2 gap-1">
-        <NuxtLink
-          to="/dashboard"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-        >
-          <span>Dashboard</span>
-          <i class="pi pi-home" />
-        </NuxtLink>
+        <template v-for="item in visibleNavItems" :key="item.label">
+          <NuxtLink
+            v-if="item.type === 'link'"
+            :to="item.to"
+            :class="topLinkClass"
+          >
+            <span>{{ item.label }}</span>
+            <i :class="item.icon" />
+          </NuxtLink>
 
-        <NuxtLink
-          to="/customers"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-        >
-          <span>Customers</span>
-          <i class="pi pi-users" />
-        </NuxtLink>
+          <template v-else>
+            <button
+              :class="topButtonClass"
+              @click="toggleMenu(item.key)"
+            >
+              <span>{{ item.label }}</span>
+              <span class="flex items-center gap-2">
+                <i :class="item.icon" />
+                <i class="pi" :class="menuOpen[item.key] ? 'pi-chevron-down' : 'pi-chevron-right'" />
+              </span>
+            </button>
 
-        <NuxtLink
-          to="/newsletter-subscribers"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-        >
-          <span>Newsletter</span>
-          <i class="pi pi-envelope" />
-        </NuxtLink>
+            <div v-show="menuOpen[item.key]" class="flex flex-col gap-1 pl-4">
+              <template v-for="child in item.children" :key="child.label">
+                <NuxtLink
+                  v-if="!child.children"
+                  :to="child.to"
+                  :class="childLinkClass"
+                >
+                  <span>{{ child.label }}</span>
+                  <i :class="child.icon" />
+                </NuxtLink>
 
-        <NuxtLink
-          to="/orders"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-        >
-          <span>Orders</span>
-          <i class="pi pi-shopping-bag" />
-        </NuxtLink>
-
-        <NuxtLink
-          to="/storefront-campaigns"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-        >
-          <span>Campaigns</span>
-          <i class="pi pi-megaphone" />
-        </NuxtLink>
-
-        <NuxtLink
-          to="/discount-codes"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-        >
-          <span>Discount Codes</span>
-          <i class="pi pi-ticket" />
-        </NuxtLink>
-
-        <!-- Access Control group -->
-        <button
-          v-if="can('ViewAny_User') || can('ViewAny_Role')"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-          @click="toggleAccess"
-        >
-          <span>Access Control</span>
-          <i class="pi" :class="accessOpen ? 'pi-chevron-down' : 'pi-chevron-right'" />
-        </button>
-        <div v-show="accessOpen" class="flex flex-col gap-1 pl-4">
-          <NuxtLink
-            v-if="can('ViewAny_User')"
-            to="/users"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Users</span>
-            <i class="pi pi-users" />
-          </NuxtLink>
-          <NuxtLink
-            v-if="can('ViewAny_Role')"
-            to="/roles"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Roles & Permissions</span>
-            <i class="pi pi-shield" />
-          </NuxtLink>
-        </div>
-
-        <!-- Content group -->
-        <button
-          v-if="can('View_ContentPage') || can('View_Faq') || can('View_FaqCategory')"
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-          @click="toggleContent"
-        >
-          <span>Content</span>
-          <i class="pi" :class="contentOpen ? 'pi-chevron-down' : 'pi-chevron-right'" />
-        </button>
-        <div v-show="contentOpen" class="flex flex-col gap-1 pl-4">
-          <NuxtLink
-            v-if="can('View_ContentPage')"
-            to="/content/pages"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Pages</span>
-            <i class="pi pi-file-edit" />
-          </NuxtLink>
-          <NuxtLink
-            v-if="can('View_Faq')"
-            to="/content/faqs"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>FAQs</span>
-            <i class="pi pi-question-circle" />
-          </NuxtLink>
-          <NuxtLink
-            v-if="can('View_FaqCategory')"
-            to="/content/faq-categories"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>FAQ Categories</span>
-            <i class="pi pi-list" />
-          </NuxtLink>
-        </div>
-
-        <!-- Shipping group -->
-        <button
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-          @click="toggleShipping"
-        >
-          <span>Shipping</span>
-          <i class="pi" :class="shippingOpen ? 'pi-chevron-down' : 'pi-chevron-right'" />
-        </button>
-        <div v-show="shippingOpen" class="flex flex-col gap-1 pl-4">
-          <NuxtLink
-            to="/shipping/zones"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Zones</span>
-            <i class="pi pi-map-marker" />
-          </NuxtLink>
-          <NuxtLink
-            to="/shipping/methods"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Methods</span>
-            <i class="pi pi-truck" />
-          </NuxtLink>
-          <NuxtLink
-            to="/shipping/rates"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Rates</span>
-            <i class="pi pi-receipt" />
-          </NuxtLink>
-          <NuxtLink
-            to="/shipments"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Shipments</span>
-            <i class="pi pi-send" />
-          </NuxtLink>
-        </div>
-
-        <!-- Catalogue group -->
-        <button
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-          @click="toggleCatalogue"
-        >
-          <span>Catalogue</span>
-          <i class="pi" :class="catalogueOpen ? 'pi-chevron-down' : 'pi-chevron-right'" />
-        </button>
-        <div v-show="catalogueOpen" class="flex flex-col gap-1 pl-4">
-          <NuxtLink
-            to="/products"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Products</span>
-            <i class="pi pi-box" />
-          </NuxtLink>
-          <NuxtLink
-            to="/categories"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Categories</span>
-            <i class="pi pi-tags" />
-          </NuxtLink>
-          <NuxtLink
-            to="/brands"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Brands</span>
-            <i class="pi pi-star" />
-          </NuxtLink>
-          <NuxtLink
-            to="/vendors"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Vendors</span>
-            <i class="pi pi-truck" />
-          </NuxtLink>
-          <NuxtLink
-            to="/collections"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Collections</span>
-            <i class="pi pi-objects-column" />
-          </NuxtLink>
-        </div>
-
-        <!-- Settings group -->
-        <button
-          class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 text-sidebar-text w-full border-none cursor-pointer transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap"
-          @click="toggleSettings"
-        >
-          <span>Settings</span>
-          <i class="pi" :class="settingsOpen ? 'pi-chevron-down' : 'pi-chevron-right'" />
-        </button>
-        <div v-show="settingsOpen" class="flex flex-col gap-1 pl-4">
-          <NuxtLink
-            to="/settings/attribute-codes"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Manage Attribute Codes</span>
-            <i class="pi pi-list" />
-          </NuxtLink>
-          <NuxtLink
-            to="/settings/payment-methods"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Payments</span>
-            <i class="pi pi-credit-card" />
-          </NuxtLink>
-          <NuxtLink
-            v-if="can('View_Category') && can('Update_Category')"
-            to="/settings/storefront-announcement"
-            class="flex items-center justify-between px-3 py-2 rounded-lg text-sidebar-text no-underline transition-colors hover:bg-sidebar-active hover:text-white whitespace-nowrap text-sm"
-          >
-            <span>Header Announcement</span>
-            <i class="pi pi-megaphone" />
-          </NuxtLink>
-        </div>
+                <div v-else class="flex flex-col gap-1">
+                  <div :class="childGroupClass">
+                    <span>{{ child.label }}</span>
+                  </div>
+                  <NuxtLink
+                    v-for="nestedChild in child.children"
+                    :key="nestedChild.label"
+                    :to="nestedChild.to"
+                    :class="childLinkClass"
+                  >
+                    <span>{{ nestedChild.label }}</span>
+                    <i :class="nestedChild.icon" />
+                  </NuxtLink>
+                </div>
+              </template>
+            </div>
+          </template>
+        </template>
       </nav>
     </aside>
 

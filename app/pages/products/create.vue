@@ -2,9 +2,15 @@
 import { yupResolver } from "@primevue/forms/resolvers/yup";
 import { object, string } from "yup";
 import { ApiError } from "~/composables/apiClient";
+import CategoryTreeMultiSelect from "~/components/products/CategoryTreeMultiSelect.vue";
 import { useProductStore } from "~/stores/product";
 import { useAttributeCodeStore } from "~/stores/attributeCode";
 import { CATEGORIES, BRANDS, VENDORS } from "~/constants/endpoints";
+import {
+  buildCategorySequences,
+  buildCategoryTree,
+  flattenCategoryTree,
+} from "~/utils/categoryTree";
 
 const productStore = useProductStore();
 const attributeCodeStore = useAttributeCodeStore();
@@ -22,7 +28,6 @@ const resolver = yupResolver(
     status: string()
       .required("Status is required")
       .oneOf(["draft", "published", "archived"], "Invalid status"),
-    category_id: string().required("Category is required"),
     brand_id: string().required("Brand is required"),
     vendor_id: string().required("Vendor is required"),
     short_description: string().max(500, "Max 500 characters"),
@@ -37,7 +42,6 @@ const initialValues = {
   name: "",
   type: "simple",
   status: "draft",
-  category_id: "",
   brand_id: "",
   vendor_id: "",
   short_description: "",
@@ -79,6 +83,8 @@ const variants = ref([]);
 const categoryOptions = ref([]);
 const brandOptions = ref([]);
 const vendorOptions = ref([]);
+const primaryCategoryId = ref(null);
+const orderedCategoryIds = ref([]);
 
 const typeOptions = [
   { label: "Simple", value: "simple" },
@@ -101,6 +107,66 @@ const loading = ref(false);
 const serverError = ref("");
 const validationErrors = ref({});
 
+const categoryLookup = computed(() => {
+  return flattenCategoryTree(categoryOptions.value).reduce((lookup, node) => {
+    lookup[node.key] = node.data;
+    return lookup;
+  }, {});
+});
+
+const selectedCategories = computed(() =>
+  orderedCategoryIds.value.map((id) => ({
+    id,
+    name: categoryLookup.value[id]?.name || `Category ${id}`,
+  })),
+);
+
+watch(orderedCategoryIds, (ids) => {
+  if (ids.length === 1 || !ids.includes(primaryCategoryId.value)) {
+    primaryCategoryId.value = orderedCategoryIds.value[0] || null;
+  }
+});
+
+function moveSelectedCategory(index, direction) {
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= orderedCategoryIds.value.length) return;
+
+  const next = [...orderedCategoryIds.value];
+  const [item] = next.splice(index, 1);
+  next.splice(targetIndex, 0, item);
+  orderedCategoryIds.value = next;
+}
+
+function appendCategoryPayload(formData, categoryIds) {
+  categoryIds.forEach((categoryId, index) => {
+    formData.append(`category_ids[${index}]`, categoryId);
+  });
+  formData.append("primary_category_id", primaryCategoryId.value);
+
+  const sequences = buildCategorySequences(categoryIds);
+  Object.entries(sequences).forEach(([categoryId, sequence]) => {
+    formData.append(`category_sequences[${categoryId}]`, sequence);
+  });
+}
+
+function validateCategoryAssignment() {
+  const errors = {};
+  const categoryIds = orderedCategoryIds.value;
+
+  if (categoryIds.length === 0) {
+    errors.category_ids = "At least one category is required";
+  }
+
+  if (!primaryCategoryId.value) {
+    errors.primary_category_id = "Primary category is required";
+  } else if (!categoryIds.includes(primaryCategoryId.value)) {
+    errors.primary_category_id =
+      "Primary category must be one of the selected categories";
+  }
+
+  return errors;
+}
+
 // --- Fetch dropdown data ---
 onMounted(async () => {
   const api = useApiClient();
@@ -112,10 +178,7 @@ onMounted(async () => {
     attributeCodeStore.fetchTypes(),
   ]);
 
-  categoryOptions.value = catRes.data.map((c) => ({
-    label: c.name,
-    value: String(c.id),
-  }));
+  categoryOptions.value = buildCategoryTree(catRes.data || []);
   brandOptions.value = brandRes.data.map((b) => ({
     label: b.name,
     value: String(b.id),
@@ -277,6 +340,7 @@ async function onSubmit({ valid, values }) {
   if (!valid) return;
 
   const errors = {};
+  Object.assign(errors, validateCategoryAssignment());
 
   // Manual validation for conditional fields
   if (selectedType.value === "simple") {
@@ -339,7 +403,7 @@ async function onSubmit({ valid, values }) {
     formData.append("name", values.name);
     formData.append("type", values.type);
     formData.append("status", values.status);
-    formData.append("category_id", values.category_id);
+    appendCategoryPayload(formData, orderedCategoryIds.value);
     formData.append("brand_id", values.brand_id);
     formData.append("vendor_id", values.vendor_id);
     if (values.short_description)
@@ -531,29 +595,104 @@ async function onSubmit({ valid, values }) {
             </Message>
           </div>
 
-          <!-- Category -->
-          <div class="flex flex-col gap-1">
-            <label for="category_id" class="text-sm font-medium text-slate-700"
-              >Category *</label
+          <!-- Categories -->
+          <div class="md:col-span-2 flex flex-col gap-3">
+            <label
+              for="category_ids"
+              class="text-sm font-medium text-slate-700"
+              >Categories *</label
             >
-            <Select
-              id="category_id"
-              name="category_id"
+            <CategoryTreeMultiSelect
+              id="category_ids"
+              v-model="orderedCategoryIds"
+              input-id="category_ids"
               :options="categoryOptions"
-              option-label="label"
-              option-value="value"
-              placeholder="Select category"
-              filter
-              fluid
+              placeholder="Select categories"
             />
             <Message
-              v-if="$form.category_id?.invalid"
+              v-if="validationErrors.category_ids"
               severity="error"
               size="small"
               variant="simple"
             >
-              {{ $form.category_id.error?.message }}
+              {{ validationErrors.category_ids }}
             </Message>
+
+            <div
+              v-if="selectedCategories.length > 0"
+              class="rounded-lg border border-slate-200 bg-slate-50 p-3"
+            >
+              <div class="mb-3">
+                <label
+                  for="primary_category_id"
+                  class="text-sm font-medium text-slate-700"
+                  >Primary Category *</label
+                >
+                <Select
+                  id="primary_category_id"
+                  v-model="primaryCategoryId"
+                  :options="selectedCategories"
+                  option-label="name"
+                  option-value="id"
+                  placeholder="Select primary category"
+                  fluid
+                  class="mt-1"
+                />
+                <Message
+                  v-if="validationErrors.primary_category_id"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  class="mt-1"
+                >
+                  {{ validationErrors.primary_category_id }}
+                </Message>
+              </div>
+
+              <div class="space-y-2">
+                <div
+                  v-for="(category, index) in selectedCategories"
+                  :key="category.id"
+                  class="flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2"
+                >
+                  <div class="flex min-w-0 items-center gap-2">
+                    <span class="text-xs font-semibold text-slate-400">
+                      {{ index + 1 }}
+                    </span>
+                    <span class="truncate text-sm font-medium text-slate-800">
+                      {{ category.name }}
+                    </span>
+                    <Tag
+                      v-if="category.id === primaryCategoryId"
+                      value="Primary"
+                      severity="success"
+                    />
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      icon="pi pi-arrow-up"
+                      severity="secondary"
+                      text
+                      rounded
+                      size="small"
+                      :disabled="index === 0"
+                      @click="moveSelectedCategory(index, -1)"
+                    />
+                    <Button
+                      type="button"
+                      icon="pi pi-arrow-down"
+                      severity="secondary"
+                      text
+                      rounded
+                      size="small"
+                      :disabled="index === selectedCategories.length - 1"
+                      @click="moveSelectedCategory(index, 1)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Brand -->

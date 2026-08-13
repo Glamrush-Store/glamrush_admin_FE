@@ -28,6 +28,7 @@ export const useOrderStore = defineStore("order", () => {
   const orderLoading = ref(false);
   const statusUpdating = ref(false);
   const loading = ref(false);
+  const refreshing = ref(false);
   const error = ref(null);
   const orderError = ref(null);
   const statusError = ref(null);
@@ -64,19 +65,33 @@ export const useOrderStore = defineStore("order", () => {
     };
   }
 
-  async function fetchOrders() {
-    loading.value = true;
-    error.value = null;
+  async function fetchOrders(options = {}) {
+    const { silent = false } = options;
+    if (loading.value || refreshing.value) return;
+
+    if (silent) {
+      refreshing.value = true;
+    } else {
+      loading.value = true;
+      error.value = null;
+    }
+
     try {
       const api = useApiClient();
       const response = await api.get(`${ORDERS.LIST}?${buildQueryString()}`);
       applyListResponse(response);
     } catch (err) {
-      error.value = err.message || "Unable to load orders";
-      orders.value = [];
-      pagination.value = { ...defaultPagination };
+      if (!silent) {
+        error.value = err.message || "Unable to load orders";
+        orders.value = [];
+        pagination.value = { ...defaultPagination };
+      }
     } finally {
-      loading.value = false;
+      if (silent) {
+        refreshing.value = false;
+      } else {
+        loading.value = false;
+      }
     }
   }
 
@@ -148,6 +163,7 @@ export const useOrderStore = defineStore("order", () => {
     filters,
     sorting,
     loading,
+    refreshing,
     orderLoading,
     statusUpdating,
     error,

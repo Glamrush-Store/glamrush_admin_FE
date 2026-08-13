@@ -1,9 +1,10 @@
 <script setup>
 import { yupResolver } from "@primevue/forms/resolvers/yup";
-import { object, string, number } from "yup";
+import { object, string } from "yup";
 import { ApiError } from "~/composables/apiClient";
 import { useCategoryStore } from "~/stores/category";
 import { CATEGORIES } from "~/constants/endpoints";
+import { buildCategoryTree, getTreeSelectionValue } from "~/utils/categoryTree";
 
 const categoryStore = useCategoryStore();
 
@@ -21,7 +22,7 @@ const initialValues = {
 };
 
 // --- Optional fields ---
-const parentId = ref(null);
+const parentSelection = ref(null);
 const description = ref("");
 const metaTitle = ref("");
 const metaKeywords = ref("");
@@ -74,10 +75,7 @@ const parentOptions = ref([]);
 onMounted(async () => {
   const api = useApiClient();
   const res = await api.get(`${CATEGORIES.LIST}?per_page=100`);
-  parentOptions.value = res.data.map((c) => ({
-    label: c.name,
-    value: String(c.id),
-  }));
+  parentOptions.value = buildCategoryTree(res.data || []);
 });
 
 // --- UI state ---
@@ -96,7 +94,8 @@ async function onSubmit({ valid, values }) {
   try {
     const formData = new FormData();
     formData.append("name", values.name);
-    if (parentId.value) formData.append("parent_id", parentId.value);
+    const parentId = getTreeSelectionValue(parentSelection.value);
+    if (parentId) formData.append("parent_id", parentId);
     if (description.value) formData.append("description", description.value);
     formData.append("sort_order", sortOrder.value ?? 0);
     formData.append("is_active", isActive.value ? "1" : "0");
@@ -180,12 +179,12 @@ async function onSubmit({ valid, values }) {
             <label class="text-sm font-medium text-slate-700"
               >Parent Category</label
             >
-            <Select
-              v-model="parentId"
+            <TreeSelect
+              v-model="parentSelection"
               :options="parentOptions"
-              option-label="label"
-              option-value="value"
               placeholder="Select parent (optional)"
+              selection-mode="checkbox"
+              display="chip"
               filter
               show-clear
               fluid

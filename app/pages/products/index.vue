@@ -1,6 +1,13 @@
 <script setup>
 import { useProductStore } from "~/stores/product";
 import { CATEGORIES, BRANDS, VENDORS } from "~/constants/endpoints";
+import {
+  buildCategoryTree,
+  getPrimaryProductCategory,
+  getProductCategories,
+  getTreeSelectionValue,
+  toTreeSelectionValue,
+} from "~/utils/categoryTree";
 
 const productStore = useProductStore();
 
@@ -66,7 +73,7 @@ function onStatusChange(val) {
 }
 
 function onCategoryChange(val) {
-  productStore.setFilter("category_id", val);
+  productStore.setFilter("category_id", getTreeSelectionValue(val));
 }
 
 function onBrandChange(val) {
@@ -135,6 +142,17 @@ function statusSeverity(status) {
   return "info";
 }
 
+function primaryCategoryName(product) {
+  return getPrimaryProductCategory(product)?.name || "-";
+}
+
+function additionalCategories(product) {
+  const primaryId = getPrimaryProductCategory(product)?.id;
+  return getProductCategories(product).filter(
+    (category) => String(category.id) !== String(primaryId),
+  );
+}
+
 async function loadFilterOptions() {
   const api = useApiClient();
   try {
@@ -143,10 +161,7 @@ async function loadFilterOptions() {
       api.get(`${BRANDS.LIST}?per_page=100`),
       api.get(`${VENDORS.LIST}?per_page=100`),
     ]);
-    categoryOptions.value = (catRes.data || []).map((c) => ({
-      label: c.name,
-      value: c.id,
-    }));
+    categoryOptions.value = buildCategoryTree(catRes.data || []);
     brandOptions.value = (brandRes.data || []).map((b) => ({
       label: b.name,
       value: b.id,
@@ -229,12 +244,13 @@ onMounted(() => {
 
       <div class="flex flex-col gap-1">
         <label class="text-sm text-slate-600">Category</label>
-        <Select
-          :model-value="productStore.filters.category_id"
+        <TreeSelect
+          :model-value="toTreeSelectionValue(productStore.filters.category_id)"
           :options="categoryOptions"
-          option-label="label"
-          option-value="value"
           placeholder="All Categories"
+          selection-mode="checkbox"
+          display="chip"
+          filter
           show-clear
           class="w-44"
           @update:model-value="onCategoryChange"
@@ -358,7 +374,20 @@ onMounted(() => {
         header="Category"
       >
         <template #body="{ data }">
-          {{ data.category?.name || "-" }}
+          <div class="flex flex-col gap-1">
+            <span>{{ primaryCategoryName(data) }}</span>
+            <div
+              v-if="additionalCategories(data).length > 0"
+              class="flex flex-wrap gap-1"
+            >
+              <Tag
+                v-for="category in additionalCategories(data)"
+                :key="category.id"
+                :value="category.name"
+                severity="secondary"
+              />
+            </div>
+          </div>
         </template>
       </Column>
       <Column v-if="isVisible('brand.name')" field="brand.name" header="Brand">

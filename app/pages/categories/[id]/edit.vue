@@ -4,6 +4,11 @@ import { object, string } from "yup";
 import { ApiError } from "~/composables/apiClient";
 import { useCategoryStore } from "~/stores/category";
 import { CATEGORIES, MEDIA } from "~/constants/endpoints";
+import {
+  buildCategoryTree,
+  getTreeSelectionValue,
+  toTreeSelectionValue,
+} from "~/utils/categoryTree";
 
 const route = useRoute();
 const id = route.params.id;
@@ -23,7 +28,7 @@ const initialValues = ref({
 });
 
 // --- Optional fields ---
-const parentId = ref(null);
+const parentSelection = ref(null);
 const description = ref("");
 const metaTitle = ref("");
 const metaKeywords = ref("");
@@ -102,12 +107,9 @@ onMounted(async () => {
       api.get(`${CATEGORIES.LIST}?per_page=100`),
     ]);
 
-    parentOptions.value = catRes.data
-      .filter((c) => String(c.id) !== String(id))
-      .map((c) => ({
-        label: c.name,
-        value: String(c.id),
-      }));
+    parentOptions.value = buildCategoryTree(
+      (catRes.data || []).filter((c) => String(c.id) !== String(id)),
+    );
 
     const c = categoryStore.category;
     if (!c) {
@@ -117,7 +119,7 @@ onMounted(async () => {
     initialValues.value = {
       name: c.name || "",
     };
-    parentId.value = c.parent_id ? String(c.parent_id) : null;
+    parentSelection.value = toTreeSelectionValue(c.parent_id);
     description.value = c.description || "";
     sortOrder.value = c.sort_order ?? 0;
     isActive.value = c.is_active ?? true;
@@ -141,7 +143,8 @@ async function onSubmit({ valid, values }) {
   try {
     const formData = new FormData();
     formData.append("name", values.name);
-    if (parentId.value) formData.append("parent_id", parentId.value);
+    const parentId = getTreeSelectionValue(parentSelection.value);
+    if (parentId) formData.append("parent_id", parentId);
     if (description.value) formData.append("description", description.value);
     formData.append("sort_order", sortOrder.value ?? 0);
     formData.append("is_active", isActive.value ? "1" : "0");
@@ -230,12 +233,12 @@ async function onSubmit({ valid, values }) {
             <label class="text-sm font-medium text-slate-700"
               >Parent Category</label
             >
-            <Select
-              v-model="parentId"
+            <TreeSelect
+              v-model="parentSelection"
               :options="parentOptions"
-              option-label="label"
-              option-value="value"
               placeholder="Select parent (optional)"
+              selection-mode="checkbox"
+              display="chip"
               filter
               show-clear
               fluid

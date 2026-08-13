@@ -5,9 +5,143 @@
 :root {
   --p-tag-success-background: #166534;
   --p-tag-success-color: #ffffff;
+  --admin-control-background: #020617;
+  --admin-control-border: #334155;
+  --admin-control-text: #ffffff;
+  --admin-control-muted-text: #e2e8f0;
+  --admin-control-hover-background: #0f172a;
+  --admin-control-selected-background: #1e293b;
 }
 
 .p-tag-success {
   background: #166534;
   color: #ffffff;
+}
+
+.p-datatable,
+.p-datatable .p-datatable-table,
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr,
+.p-datatable .p-datatable-tbody > tr > td,
+.p-datatable .p-datatable-tfoot > tr > td {
+  background: var(--admin-control-background);
+  color: var(--admin-control-text);
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  border-color: var(--admin-control-border);
+  color: var(--admin-control-muted-text);
+}
+
+.p-datatable .p-datatable-tbody > tr > td,
+.p-datatable .p-datatable-tfoot > tr > td {
+  border-color: var(--admin-control-border);
+}
+
+.p-datatable .p-datatable-tbody > tr:hover,
+.p-datatable .p-datatable-tbody > tr:hover > td,
+.p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even),
+.p-datatable.p-datatable-striped .p-datatable-tbody > tr:nth-child(even) > td {
+  background: var(--admin-control-hover-background);
+  color: var(--admin-control-text);
+}
+
+.p-datatable .p-datatable-tbody > tr > td *,
+.p-datatable .p-datatable-thead > tr > th * {
+  color: inherit;
+}
+
+.p-inputtext,
+.p-textarea,
+.p-select,
+.p-multiselect,
+.p-treeselect,
+.p-datepicker-input,
+.p-inputnumber-input {
+  background: var(--admin-control-background);
+  border-color: var(--admin-control-border);
+  color: var(--admin-control-text);
+}
+
+.p-inputtext::placeholder,
+.p-textarea::placeholder,
+.p-datepicker-input::placeholder,
+.p-inputnumber-input::placeholder {
+  color: var(--admin-control-muted-text);
+  opacity: 1;
+}
+
+.p-select-label,
+.p-multiselect-label,
+.p-treeselect-label,
+.p-select-placeholder,
+.p-multiselect-placeholder,
+.p-treeselect-placeholder,
+.p-select-dropdown,
+.p-multiselect-dropdown,
+.p-treeselect-dropdown,
+.p-select-clear-icon,
+.p-multiselect-clear-icon,
+.p-treeselect-clear-icon {
+  color: var(--admin-control-text);
+}
+
+.p-select-placeholder,
+.p-multiselect-placeholder,
+.p-treeselect-placeholder {
+  color: var(--admin-control-muted-text);
+}
+
+.p-select-overlay,
+.p-multiselect-overlay,
+.p-treeselect-overlay,
+.p-tree,
+.p-datepicker-panel {
+  background: var(--admin-control-background);
+  border-color: var(--admin-control-border);
+  color: var(--admin-control-text);
+}
+
+.p-select-option,
+.p-multiselect-option,
+.p-select-empty-message,
+.p-multiselect-empty-message,
+.p-treeselect-empty-message,
+.p-tree-node-content,
+.p-tree-node-label,
+.p-tree-node-toggle-button,
+.p-datepicker-panel td,
+.p-datepicker-header,
+.p-datepicker-title,
+.p-datepicker-weekday,
+.p-datepicker-day {
+  color: var(--admin-control-text);
+}
+
+.p-select-option *,
+.p-multiselect-option *,
+.p-select-empty-message *,
+.p-multiselect-empty-message *,
+.p-treeselect-empty-message *,
+.p-tree * {
+  color: inherit;
+}
+
+.p-select-option:not(.p-disabled):hover,
+.p-multiselect-option:not(.p-disabled):hover,
+.p-tree-node-content:hover,
+.p-select-option.p-focus,
+.p-multiselect-option.p-focus,
+.p-tree-node-content.p-focus,
+.p-datepicker-day:not(.p-disabled):hover {
+  background: var(--admin-control-hover-background);
+  color: var(--admin-control-text);
+}
+
+.p-select-option.p-selected,
+.p-multiselect-option.p-selected,
+.p-tree-node-content.p-tree-node-selected,
+.p-datepicker-day-selected {
+  background: var(--admin-control-selected-background);
+  color: var(--admin-control-text);
 }
