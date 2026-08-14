@@ -14,6 +14,13 @@ export const DASHBOARD = {
   ANALYTICS: "/dashboard/analytics",
 };
 
+export const CACHE_METRICS = {
+  LIST: "/cache-metrics",
+  STATUS: "/cache-metrics/status",
+  REFRESH: "/cache-metrics/refresh",
+  FLUSH: "/cache-metrics/flush",
+};
+
 export const PRODUCTS = {
   LIST: "/products",
   CREATE: "/products",
