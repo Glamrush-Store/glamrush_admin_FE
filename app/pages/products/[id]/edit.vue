@@ -29,7 +29,6 @@ const resolver = yupResolver(
     brand_id: string().required("Brand is required"),
     vendor_id: string().required("Vendor is required"),
     short_description: string().max(500, "Max 500 characters"),
-    description: string().max(5000, "Max 5000 characters"),
     meta_title: string().max(255, "Max 255 characters"),
     meta_keywords: string().max(500, "Max 500 characters"),
     meta_description: string().max(1000, "Max 1000 characters"),
@@ -42,7 +41,6 @@ const initialValues = ref({
   brand_id: "",
   vendor_id: "",
   short_description: "",
-  description: "",
   meta_title: "",
   meta_keywords: "",
   meta_description: "",
@@ -69,6 +67,7 @@ const inventory = reactive({
 // --- Flags ---
 const isFeatured = ref(false);
 const sortOrder = ref(0);
+const descriptionHtml = ref("");
 
 // --- Images ---
 const existingImages = ref([]);
@@ -263,11 +262,11 @@ onMounted(async () => {
       brand_id: p.brand?.id ? String(p.brand.id) : "",
       vendor_id: p.vendor?.id ? String(p.vendor.id) : "",
       short_description: p.short_description || "",
-      description: p.description || "",
       meta_title: p.meta?.title || "",
       meta_keywords: p.meta?.keywords || "",
       meta_description: p.meta?.description || "",
     };
+    descriptionHtml.value = p.description || "";
 
     const productCategories = getProductCategories(p);
     const categoryIds = productCategories.map((category) => String(category.id));
@@ -322,6 +321,10 @@ async function onSubmit({ valid, values }) {
   const errors = {};
   Object.assign(errors, validateCategoryAssignment());
 
+  if (descriptionHtml.value.length > 5000) {
+    errors.description = "Max 5000 characters";
+  }
+
   if (productType.value === "simple") {
     if (!pricing.price || pricing.price <= 0) {
       errors.price = "Price is required and must be greater than 0";
@@ -357,8 +360,8 @@ async function onSubmit({ valid, values }) {
 
       if (values.short_description)
         formData.append("short_description", values.short_description);
-      if (values.description)
-        formData.append("description", values.description);
+      if (descriptionHtml.value)
+        formData.append("description", descriptionHtml.value);
       if (values.meta_title)
         formData.append("meta_title", values.meta_title);
       if (values.meta_keywords)
@@ -402,7 +405,7 @@ async function onSubmit({ valid, values }) {
 
       if (values.short_description)
         payload.short_description = values.short_description;
-      if (values.description) payload.description = values.description;
+      if (descriptionHtml.value) payload.description = descriptionHtml.value;
       if (values.meta_title) payload.meta_title = values.meta_title;
       if (values.meta_keywords) payload.meta_keywords = values.meta_keywords;
       if (values.meta_description)
@@ -707,20 +710,14 @@ async function onSubmit({ valid, values }) {
             <label for="description" class="text-sm font-medium text-slate-700"
               >Description</label
             >
-            <Textarea
-              id="description"
-              name="description"
-              placeholder="Full product description"
-              rows="5"
-              fluid
-            />
+            <ContentManagementHtmlEditor v-model="descriptionHtml" />
             <Message
-              v-if="$form.description?.invalid"
+              v-if="validationErrors.description"
               severity="error"
               size="small"
               variant="simple"
             >
-              {{ $form.description.error?.message }}
+              {{ validationErrors.description }}
             </Message>
           </div>
         </div>

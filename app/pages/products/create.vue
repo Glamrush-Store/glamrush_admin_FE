@@ -31,7 +31,6 @@ const resolver = yupResolver(
     brand_id: string().required("Brand is required"),
     vendor_id: string().required("Vendor is required"),
     short_description: string().max(500, "Max 500 characters"),
-    description: string().max(5000, "Max 5000 characters"),
     meta_title: string().max(255, "Max 255 characters"),
     meta_keywords: string().max(500, "Max 500 characters"),
     meta_description: string().max(1000, "Max 1000 characters"),
@@ -45,7 +44,6 @@ const initialValues = {
   brand_id: "",
   vendor_id: "",
   short_description: "",
-  description: "",
   meta_title: "",
   meta_keywords: "",
   meta_description: "",
@@ -72,6 +70,7 @@ const inventory = reactive({
 // --- Flags ---
 const isFeatured = ref(false);
 const sortOrder = ref(0);
+const descriptionHtml = ref("");
 
 // --- Product images (array of { file, previewUrl }) ---
 const productImages = ref([]);
@@ -342,6 +341,10 @@ async function onSubmit({ valid, values }) {
   const errors = {};
   Object.assign(errors, validateCategoryAssignment());
 
+  if (descriptionHtml.value.length > 5000) {
+    errors.description = "Max 5000 characters";
+  }
+
   // Manual validation for conditional fields
   if (selectedType.value === "simple") {
     if (!pricing.price || pricing.price <= 0) {
@@ -408,7 +411,8 @@ async function onSubmit({ valid, values }) {
     formData.append("vendor_id", values.vendor_id);
     if (values.short_description)
       formData.append("short_description", values.short_description);
-    if (values.description) formData.append("description", values.description);
+    if (descriptionHtml.value)
+      formData.append("description", descriptionHtml.value);
     if (values.meta_title) formData.append("meta_title", values.meta_title);
     if (values.meta_keywords)
       formData.append("meta_keywords", values.meta_keywords);
@@ -774,20 +778,14 @@ async function onSubmit({ valid, values }) {
             <label for="description" class="text-sm font-medium text-slate-700"
               >Description</label
             >
-            <Textarea
-              id="description"
-              name="description"
-              placeholder="Full product description"
-              rows="5"
-              fluid
-            />
+            <ContentManagementHtmlEditor v-model="descriptionHtml" />
             <Message
-              v-if="$form.description?.invalid"
+              v-if="validationErrors.description"
               severity="error"
               size="small"
               variant="simple"
             >
-              {{ $form.description.error?.message }}
+              {{ validationErrors.description }}
             </Message>
           </div>
         </div>

@@ -184,9 +184,12 @@ onMounted(() => {
       <!-- Description Card -->
       <div class="mt-6 bg-white rounded-lg border border-slate-200 p-6">
         <h2 class="text-lg font-semibold text-slate-800 mb-4">Description</h2>
-        <p class="font-medium text-slate-900">
-          {{ category.description || "\u2014" }}
-        </p>
+        <div
+          v-if="category.description"
+          class="prose prose-sm max-w-none text-slate-900"
+          v-html="category.description"
+        />
+        <p v-else class="font-medium text-slate-900">&mdash;</p>
       </div>
 
       <!-- SEO / Meta Card -->

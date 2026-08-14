@@ -265,12 +265,7 @@ async function onSubmit({ valid, values }) {
       <div class="bg-white rounded-lg border border-slate-200 p-6 mb-6">
         <h2 class="text-lg font-semibold text-slate-800 mb-4">Description</h2>
         <div class="flex flex-col gap-1">
-          <Textarea
-            v-model="description"
-            placeholder="Category description"
-            rows="4"
-            fluid
-          />
+          <ContentManagementHtmlEditor v-model="description" />
         </div>
       </div>
 

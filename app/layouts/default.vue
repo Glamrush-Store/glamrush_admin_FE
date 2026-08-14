@@ -20,7 +20,8 @@ const menuOpen = reactive({
     || route.path.startsWith("/shipping")
     || route.path.startsWith("/shipments")
     || route.path.startsWith("/users")
-    || route.path.startsWith("/roles"),
+    || route.path.startsWith("/roles")
+    || route.path.startsWith("/dashboard/cache-monitoring"),
 });
 
 const navItems = [
@@ -101,6 +102,13 @@ const navItems = [
         icon: "pi pi-sliders-h",
         children: [
           { label: "Site Settings", to: "/settings/site-settings", icon: "pi pi-sliders-h", permission: "View_Setting" },
+        ],
+      },
+      {
+        label: "Developer",
+        icon: "pi pi-code",
+        children: [
+          { label: "Cache Monitoring", to: "/dashboard/cache-monitoring", icon: "pi pi-server", permission: "View_Dashboard" },
         ],
       },
     ],
