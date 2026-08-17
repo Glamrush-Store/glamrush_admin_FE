@@ -18,6 +18,27 @@ const orderItems = computed(() => order.value?.items || []);
 const shippingAddress = computed(() => shippingInfo.value.shipping_address || {});
 const billingAddress = computed(() => shippingInfo.value.billing_address || null);
 const isStatusDirty = computed(() => selectedStatus.value && selectedStatus.value !== order.value?.status);
+const displayCustomerInfo = computed(() => {
+  const address = shippingAddress.value || {};
+  const shippingName = address.full_name || [
+    address.first_name,
+    address.last_name,
+  ].filter(Boolean).join(" ");
+
+  if (customerInfo.value?.type === "customer") return customerInfo.value;
+
+  const info = {
+    ...(customerInfo.value || {}),
+    type: customerInfo.value?.type || "guest",
+    name: customerInfo.value?.name || shippingName,
+    email: customerInfo.value?.email || address.email,
+    phone: customerInfo.value?.phone || address.phone,
+  };
+
+  if (!info.name && !info.email && !info.phone) return null;
+
+  return info;
+});
 
 function valueOrDash(value) {
   return value === null || value === undefined || value === "" ? "-" : value;
@@ -44,12 +65,12 @@ function formatPrice(value, currency = "NGN") {
 }
 
 function formatAddress(address) {
-  const name = [address?.first_name, address?.last_name].filter(Boolean).join(" ");
+  const name = address?.full_name || [address?.first_name, address?.last_name].filter(Boolean).join(" ");
   const parts = [
     name,
     address?.phone,
-    address?.address_line_1,
-    address?.address_line_2,
+    address?.address_line_1 || address?.line1,
+    address?.address_line_2 || address?.line2,
     address?.city,
     address?.state,
     address?.postal_code,
@@ -152,27 +173,27 @@ onMounted(() => {
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-slate-800">Customer Info</h2>
             <Tag
-              v-if="customerInfo"
-              :value="customerTypeLabel(customerInfo.type)"
-              :severity="customerInfo.type === 'customer' ? 'success' : 'secondary'"
+              v-if="displayCustomerInfo"
+              :value="customerTypeLabel(displayCustomerInfo.type)"
+              :severity="displayCustomerInfo.type === 'customer' ? 'success' : 'secondary'"
             />
           </div>
-          <div v-if="customerInfo" class="space-y-4">
+          <div v-if="displayCustomerInfo" class="space-y-4">
             <div>
               <span class="text-sm text-slate-500">Name</span>
-              <p class="font-medium text-slate-900">{{ valueOrDash(customerInfo.name) }}</p>
+              <p class="font-medium text-slate-900">{{ valueOrDash(displayCustomerInfo.name) }}</p>
             </div>
             <div>
               <span class="text-sm text-slate-500">Email</span>
-              <p class="font-medium text-slate-900">{{ valueOrDash(customerInfo.email) }}</p>
+              <p class="font-medium text-slate-900">{{ valueOrDash(displayCustomerInfo.email) }}</p>
             </div>
             <div>
               <span class="text-sm text-slate-500">Phone</span>
-              <p class="font-medium text-slate-900">{{ valueOrDash(customerInfo.phone) }}</p>
+              <p class="font-medium text-slate-900">{{ valueOrDash(displayCustomerInfo.phone) }}</p>
             </div>
-            <div v-if="customerInfo.type === 'customer'">
+            <div v-if="displayCustomerInfo.type === 'customer'">
               <span class="text-sm text-slate-500">Customer Since</span>
-              <p class="font-medium text-slate-900">{{ formatDateTime(customerInfo.created_at) }}</p>
+              <p class="font-medium text-slate-900">{{ formatDateTime(displayCustomerInfo.created_at) }}</p>
             </div>
           </div>
           <p v-else class="text-sm text-slate-500">No customer profile is attached to this order.</p>

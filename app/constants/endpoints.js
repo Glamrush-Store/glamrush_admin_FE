@@ -10,6 +10,17 @@ export const AUTH = {
 
 export const HEALTH = "/health";
 
+export const DASHBOARD = {
+  ANALYTICS: "/dashboard/analytics",
+};
+
+export const CACHE_METRICS = {
+  LIST: "/cache-metrics",
+  STATUS: "/cache-metrics/status",
+  REFRESH: "/cache-metrics/refresh",
+  FLUSH: "/cache-metrics/flush",
+};
+
 export const PRODUCTS = {
   LIST: "/products",
   CREATE: "/products",
@@ -45,6 +56,11 @@ export const SHIPPING_ZONES = {
   DELETE: (id) => `/shipping/zones/${id}`,
 };
 
+export const SHIPPING_LOCATION_OPTIONS = {
+  COUNTRIES: "/shipping/location-options/countries",
+  COUNTRY: (country) => `/shipping/location-options/countries/${country}`,
+};
+
 export const SHIPPING_METHODS = {
   LIST:   "/shipping/methods",
   CREATE: "/shipping/methods",
@@ -68,6 +84,7 @@ export const SHIPMENTS = {
 
 export const ORDERS = {
   LIST: "/orders",
+  CREATE_MANUAL: "/orders/manual",
   SHOW: (id) => `/orders/${id}`,
   UPDATE_STATUS: (id) => `/orders/${id}/status`,
 };
@@ -79,6 +96,27 @@ export const MEDIA = {
 export const CUSTOMERS = {
   LIST: "/customers",
   SHOW: (id) => `/customers/${id}`,
+};
+
+export const USERS = {
+  LIST: "/users",
+  CREATE: "/users",
+  SHOW: (id) => `/users/${id}`,
+  UPDATE: (id) => `/users/${id}`,
+  DELETE: (id) => `/users/${id}`,
+};
+
+export const ROLES = {
+  LIST: "/roles",
+  CREATE: "/roles",
+  SHOW: (id) => `/roles/${id}`,
+  UPDATE: (id) => `/roles/${id}`,
+  DELETE: (id) => `/roles/${id}`,
+  SYNC_PERMISSIONS: (id) => `/roles/${id}/permissions`,
+};
+
+export const PERMISSIONS = {
+  LIST: "/permissions",
 };
 
 export const NEWSLETTER_SUBSCRIBERS = {
@@ -102,6 +140,25 @@ export const PAYMENT_METHODS = {
   DELETE: (id) => `/payment-methods/${id}`,
 };
 
+export const PAYMENT_TRANSACTIONS = {
+  LIST: "/payment-transactions",
+};
+
+export const SITE_SETTINGS = {
+  CATEGORIES: {
+    LIST: "/settings/categories",
+    CREATE: "/settings/categories",
+    SHOW: (id) => `/settings/categories/${id}`,
+    UPDATE: (id) => `/settings/categories/${id}`,
+    DELETE: (id) => `/settings/categories/${id}`,
+  },
+  LIST: "/settings",
+  CREATE: "/settings",
+  SHOW: (id) => `/settings/${id}`,
+  UPDATE: (id) => `/settings/${id}`,
+  DELETE: (id) => `/settings/${id}`,
+};
+
 export const STOREFRONT_CAMPAIGNS = {
   LIST: (storefront) => `/storefronts/${storefront}/campaigns`,
   CREATE: (storefront) => `/storefronts/${storefront}/campaigns`,
@@ -120,4 +177,36 @@ export const DISCOUNT_CODES = {
   ACTIVATE: (id) => `/discount-codes/${id}/activate`,
   DEACTIVATE: (id) => `/discount-codes/${id}/deactivate`,
   DUPLICATE: (id) => `/discount-codes/${id}/duplicate`,
+};
+
+export const CONTENT_PAGES = {
+  LIST: "/content-pages",
+  CREATE: "/content-pages",
+  SHOW: (id) => `/content-pages/${id}`,
+  UPDATE: (id) => `/content-pages/${id}`,
+  PUBLISH: (id) => `/content-pages/${id}/publish`,
+  UNPUBLISH: (id) => `/content-pages/${id}/unpublish`,
+  DUPLICATE: (id) => `/content-pages/${id}/duplicate`,
+  DELETE: (id) => `/content-pages/${id}`,
+};
+
+export const FAQ_CATEGORIES = {
+  LIST: "/faq-categories",
+  CREATE: "/faq-categories",
+  SHOW: (id) => `/faq-categories/${id}`,
+  UPDATE: (id) => `/faq-categories/${id}`,
+  DELETE: (id) => `/faq-categories/${id}`,
+  REORDER: "/faq-categories/reorder",
+};
+
+export const FAQS = {
+  LIST: "/faqs",
+  CREATE: "/faqs",
+  SHOW: (id) => `/faqs/${id}`,
+  UPDATE: (id) => `/faqs/${id}`,
+  PUBLISH: (id) => `/faqs/${id}/publish`,
+  UNPUBLISH: (id) => `/faqs/${id}/unpublish`,
+  DUPLICATE: (id) => `/faqs/${id}/duplicate`,
+  DELETE: (id) => `/faqs/${id}`,
+  REORDER: "/faqs/reorder",
 };
