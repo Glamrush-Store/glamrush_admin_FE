@@ -169,6 +169,17 @@ export const STOREFRONT_CAMPAIGNS = {
   DISABLE: (storefront, id) => `/storefronts/${storefront}/campaigns/${id}/disable`,
 };
 
+export const HOMEPAGE_SECTIONS = {
+  LIST: "/homepage-sections",
+  TYPES: "/homepage-sections/types",
+  CREATE: "/homepage-sections",
+  UPDATE: (id) => `/homepage-sections/${id}`,
+  DELETE: (id) => `/homepage-sections/${id}`,
+  ENABLE: (id) => `/homepage-sections/${id}/enable`,
+  DISABLE: (id) => `/homepage-sections/${id}/disable`,
+  REORDER: "/homepage-sections/reorder",
+};
+
 export const DISCOUNT_CODES = {
   LIST: "/discount-codes",
   CREATE: "/discount-codes",
