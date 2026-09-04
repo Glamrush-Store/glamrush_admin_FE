@@ -15,6 +15,7 @@ const menuOpen = reactive({
     || route.path.startsWith("/discount-codes"),
   content: route.path.startsWith("/content")
     || route.path.startsWith("/storefront-campaigns")
+    || route.path.startsWith("/homepage-sections")
     || route.path.startsWith("/newsletter-subscribers"),
   settings: route.path.startsWith("/settings")
     || route.path.startsWith("/shipping")
@@ -61,6 +62,7 @@ const navItems = [
       { label: "FAQs", to: "/content/faqs", icon: "pi pi-question-circle", permission: "View_Faq" },
       { label: "FAQ Categories", to: "/content/faq-categories", icon: "pi pi-list", permission: "View_FaqCategory" },
       { label: "Campaigns", to: "/storefront-campaigns", icon: "pi pi-megaphone", permission: "ViewAny_StorefrontCampaign" },
+      { label: "Homepage Sections", to: "/homepage-sections", icon: "pi pi-th-large", permission: "ViewAny_StorefrontHomepageSection" },
       { label: "Newsletter", to: "/newsletter-subscribers", icon: "pi pi-envelope", permission: "ViewAny_NewsletterSubscriber" },
     ],
   },
