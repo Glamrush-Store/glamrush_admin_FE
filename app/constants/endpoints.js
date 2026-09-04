@@ -171,9 +171,12 @@ export const STOREFRONT_CAMPAIGNS = {
 
 export const HOMEPAGE_SECTIONS = {
   LIST: "/homepage-sections",
+  TYPES: "/homepage-sections/types",
   CREATE: "/homepage-sections",
   UPDATE: (id) => `/homepage-sections/${id}`,
   DELETE: (id) => `/homepage-sections/${id}`,
+  ENABLE: (id) => `/homepage-sections/${id}/enable`,
+  DISABLE: (id) => `/homepage-sections/${id}/disable`,
   REORDER: "/homepage-sections/reorder",
 };
 
