@@ -5,8 +5,6 @@ import { ApiError } from "~/composables/apiClient";
 import {
   HOMEPAGE_SECTION_ACTIVE_OPTIONS,
   HOMEPAGE_SECTION_PERMISSIONS,
-  HOMEPAGE_SECTION_TYPE_LABELS,
-  HOMEPAGE_SECTION_TYPES,
   formatHomepageSectionDate,
   formatHomepageSectionWindow,
 } from "~/constants/homepageSections";
@@ -28,7 +26,7 @@ const canUpdate = computed(() => can(HOMEPAGE_SECTION_PERMISSIONS.update));
 const canDelete = computed(() => can(HOMEPAGE_SECTION_PERMISSIONS.delete));
 
 function typeLabel(type) {
-  return HOMEPAGE_SECTION_TYPE_LABELS[type] || type || "-";
+  return store.sectionTypes.find((sectionType) => sectionType.value === type)?.label || type || "-";
 }
 
 function activeSeverity(section) {
@@ -36,6 +34,7 @@ function activeSeverity(section) {
 }
 
 function relationCount(section, idsKey, relationKey) {
+  if (idsKey === "product_ids" && Array.isArray(section?.config?.product_ids)) return section.config.product_ids.length;
   if (Array.isArray(section?.[idsKey])) return section[idsKey].length;
   if (Array.isArray(section?.[relationKey])) return section[relationKey].length;
   return 0;
@@ -67,12 +66,26 @@ async function loadSelectorOptions() {
   }
 }
 
+async function loadSectionTypes() {
+  try {
+    await store.fetchSectionTypes();
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Section types unavailable",
+      detail: error.message || "Unable to load homepage section types",
+      life: 4500,
+    });
+  }
+}
+
 async function openCreateDialog() {
   editingSection.value = null;
   validationErrors.value = {};
   serverError.value = "";
   dialogVisible.value = true;
-  if (!store.products.length || !store.categories.length) await loadSelectorOptions();
+  if (!store.sectionTypes.length) await loadSectionTypes();
+  if (!store.products.length || !store.categories.length || !store.collections.length) await loadSelectorOptions();
 }
 
 async function openEditDialog(section) {
@@ -80,7 +93,8 @@ async function openEditDialog(section) {
   validationErrors.value = {};
   serverError.value = "";
   dialogVisible.value = true;
-  if (!store.products.length || !store.categories.length) await loadSelectorOptions();
+  if (!store.sectionTypes.length) await loadSectionTypes();
+  if (!store.products.length || !store.categories.length || !store.collections.length) await loadSelectorOptions();
 }
 
 function handleValidationError(error, fallback) {
@@ -116,7 +130,7 @@ async function submitSection(payload) {
 
 function confirmDelete(section) {
   confirm.require({
-    message: `Delete "${section.name}"? This removes it from the storefront homepage configuration.`,
+    message: `Delete "${section.title || section.name}"? This removes it from the storefront homepage configuration.`,
     header: "Delete homepage section",
     icon: "pi pi-exclamation-triangle",
     rejectLabel: "Cancel",
@@ -152,8 +166,30 @@ function moveSection(index, direction) {
   next.splice(target, 0, section);
   store.sections = next.map((item, itemIndex) => ({
     ...item,
-    sort_order: itemIndex,
+    display_order: itemIndex,
   }));
+}
+
+async function toggleSectionStatus(section) {
+  try {
+    const response = section.is_active
+      ? await store.disableSection(section.id)
+      : await store.enableSection(section.id);
+
+    toast.add({
+      severity: "success",
+      summary: response.message || (section.is_active ? "Section disabled" : "Section enabled"),
+      life: 3500,
+    });
+    await loadSections();
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Status update failed",
+      detail: error.message || "Unable to update homepage section status",
+      life: 4500,
+    });
+  }
 }
 
 async function saveOrder() {
@@ -188,8 +224,13 @@ async function resetFilters() {
   }
 }
 
-onMounted(() => {
-  if (canList.value) loadSections();
+onMounted(async () => {
+  if (canList.value) {
+    await Promise.all([
+      loadSections(),
+      loadSectionTypes(),
+    ]);
+  }
 });
 </script>
 
@@ -250,11 +291,12 @@ onMounted(() => {
             <label class="text-sm font-medium text-slate-600">Type</label>
             <Select
               :model-value="store.filters.type"
-              :options="[{ label: 'All types', value: null }, ...HOMEPAGE_SECTION_TYPES]"
+              :options="[{ label: 'All types', value: null }, ...store.sectionTypes]"
               option-label="label"
               option-value="value"
               placeholder="All types"
-              :disabled="store.loading"
+              :loading="store.typeLoading"
+              :disabled="store.loading || store.typeLoading || !store.sectionTypes.length"
               @update:model-value="store.setFilter('type', $event)"
             />
           </div>
@@ -302,10 +344,9 @@ onMounted(() => {
           <Column header="Name">
             <template #body="{ data }">
               <div>
-                <p class="m-0 font-semibold text-slate-900">{{ data.name }}</p>
+                <p class="m-0 font-semibold text-slate-900">{{ data.name || data.title }}</p>
                 <p class="m-0 text-xs text-slate-500">
-                  {{ relationCount(data, "product_ids", "products") }} products |
-                  {{ relationCount(data, "category_ids", "categories") }} categories
+                  {{ relationCount(data, "product_ids", "products") }} products
                 </p>
               </div>
             </template>
@@ -332,10 +373,10 @@ onMounted(() => {
             </template>
           </Column>
 
-          <Column field="sort_order" header="Sort order">
+          <Column field="display_order" header="Display order">
             <template #body="{ data, index }">
               <div class="flex items-center gap-2">
-                <span class="min-w-8 font-mono text-sm text-slate-700">{{ data.sort_order ?? index }}</span>
+                <span class="min-w-8 font-mono text-sm text-slate-700">{{ data.display_order ?? index }}</span>
                 <div v-if="canUpdate" class="flex items-center gap-1">
                   <Button
                     icon="pi pi-chevron-up"
@@ -373,6 +414,15 @@ onMounted(() => {
               <div class="flex items-center gap-1">
                 <Button
                   v-if="canUpdate"
+                  :icon="data.is_active ? 'pi pi-pause' : 'pi pi-play'"
+                  :severity="data.is_active ? 'warning' : 'success'"
+                  text
+                  rounded
+                  :disabled="store.actionLoading"
+                  @click="toggleSectionStatus(data)"
+                />
+                <Button
+                  v-if="canUpdate"
                   icon="pi pi-pencil"
                   severity="info"
                   text
@@ -397,10 +447,13 @@ onMounted(() => {
       <HomepageSectionsHomepageSectionFormDialog
         v-model:visible="dialogVisible"
         :section="editingSection"
+        :section-types="store.sectionTypes"
         :products="store.products"
         :categories="store.categories"
+        :collections="store.collections"
         :loading="store.actionLoading"
         :selector-loading="store.selectorLoading"
+        :type-loading="store.typeLoading"
         :errors="validationErrors"
         :server-error="serverError"
         @submit="submitSection"

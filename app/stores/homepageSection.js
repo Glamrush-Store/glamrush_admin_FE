@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { CATEGORIES, HOMEPAGE_SECTIONS, PRODUCTS } from "~/constants/endpoints";
+import { CATEGORIES, COLLECTIONS, HOMEPAGE_SECTIONS, PRODUCTS } from "~/constants/endpoints";
 
 const defaultFilters = {
   type: null,
@@ -25,11 +25,14 @@ function unwrapList(response) {
 
 export const useHomepageSectionStore = defineStore("homepageSection", () => {
   const sections = ref([]);
+  const sectionTypes = ref([]);
   const products = ref([]);
   const categories = ref([]);
+  const collections = ref([]);
   const filters = ref({ ...defaultFilters });
   const meta = ref(null);
   const loading = ref(false);
+  const typeLoading = ref(false);
   const selectorLoading = ref(false);
   const actionLoading = ref(false);
   const reorderLoading = ref(false);
@@ -47,7 +50,7 @@ export const useHomepageSectionStore = defineStore("homepageSection", () => {
       const api = useApiClient();
       const query = buildQuery(filters.value);
       const response = await api.get(`${HOMEPAGE_SECTIONS.LIST}?${query}`);
-      sections.value = unwrapList(response).sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+      sections.value = unwrapList(response).sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0));
       meta.value = response.meta || null;
       return response;
     } catch (err) {
@@ -58,18 +61,33 @@ export const useHomepageSectionStore = defineStore("homepageSection", () => {
     }
   }
 
+  async function fetchSectionTypes() {
+    typeLoading.value = true;
+
+    try {
+      const api = useApiClient();
+      const response = await api.get(HOMEPAGE_SECTIONS.TYPES);
+      sectionTypes.value = unwrapList(response);
+      return response;
+    } finally {
+      typeLoading.value = false;
+    }
+  }
+
   async function fetchSelectorOptions() {
     selectorLoading.value = true;
 
     try {
       const api = useApiClient();
-      const [productResponse, categoryResponse] = await Promise.all([
+      const [productResponse, categoryResponse, collectionResponse] = await Promise.all([
         api.get(`${PRODUCTS.LIST}?per_page=500`),
         api.get(`${CATEGORIES.LIST}?per_page=500`),
+        api.get(`${COLLECTIONS.LIST}?per_page=500`),
       ]);
 
       products.value = unwrapList(productResponse);
       categories.value = unwrapList(categoryResponse);
+      collections.value = unwrapList(collectionResponse);
     } finally {
       selectorLoading.value = false;
     }
@@ -108,16 +126,35 @@ export const useHomepageSectionStore = defineStore("homepageSection", () => {
     }
   }
 
+  async function enableSection(id) {
+    actionLoading.value = true;
+
+    try {
+      const api = useApiClient();
+      return await api.patch(HOMEPAGE_SECTIONS.ENABLE(id));
+    } finally {
+      actionLoading.value = false;
+    }
+  }
+
+  async function disableSection(id) {
+    actionLoading.value = true;
+
+    try {
+      const api = useApiClient();
+      return await api.patch(HOMEPAGE_SECTIONS.DISABLE(id));
+    } finally {
+      actionLoading.value = false;
+    }
+  }
+
   async function reorderSections(orderedSections) {
     reorderLoading.value = true;
 
     try {
       const api = useApiClient();
       return await api.put(HOMEPAGE_SECTIONS.REORDER, {
-        sections: orderedSections.map((section, index) => ({
-          id: section.id,
-          sort_order: index,
-        })),
+        section_ids: orderedSections.map((section) => section.id),
       });
     } finally {
       reorderLoading.value = false;
@@ -136,20 +173,26 @@ export const useHomepageSectionStore = defineStore("homepageSection", () => {
 
   return {
     sections,
+    sectionTypes,
     products,
     categories,
+    collections,
     filters,
     meta,
     loading,
+    typeLoading,
     selectorLoading,
     actionLoading,
     reorderLoading,
     error,
     fetchSections,
+    fetchSectionTypes,
     fetchSelectorOptions,
     createSection,
     updateSection,
     deleteSection,
+    enableSection,
+    disableSection,
     reorderSections,
     setFilter,
     resetFilters,

@@ -1,20 +1,19 @@
-export const HOMEPAGE_SECTION_TYPES = [
-  { label: "Hero", value: "hero" },
-  { label: "Product grid", value: "product_grid" },
-  { label: "Category grid", value: "category_grid" },
-  { label: "Collection", value: "collection" },
-  { label: "Banner", value: "banner" },
-  { label: "Editorial", value: "editorial" },
-];
-
-export const HOMEPAGE_SECTION_TYPE_LABELS = Object.fromEntries(
-  HOMEPAGE_SECTION_TYPES.map((option) => [option.value, option.label]),
-);
-
 export const HOMEPAGE_SECTION_ACTIVE_OPTIONS = [
   { label: "Any", value: null },
   { label: "Active", value: true },
   { label: "Inactive", value: false },
+];
+
+export const HOMEPAGE_SECTION_SORT_OPTIONS = [
+  { label: "Created at", value: "created_at" },
+  { label: "Price", value: "price" },
+  { label: "Sort order", value: "sort_order" },
+  { label: "Name", value: "name" },
+];
+
+export const HOMEPAGE_SECTION_DIRECTION_OPTIONS = [
+  { label: "Ascending", value: "asc" },
+  { label: "Descending", value: "desc" },
 ];
 
 export const HOMEPAGE_SECTION_PERMISSIONS = {
