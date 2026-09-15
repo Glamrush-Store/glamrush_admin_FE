@@ -74,6 +74,7 @@ const navItems = [
     children: [
       { label: "Header Announcement", to: "/settings/storefront-announcement", icon: "pi pi-megaphone", permissionsAll: ["View_Category", "Update_Category"] },
       { label: "Attribute Codes", to: "/settings/attribute-codes", icon: "pi pi-list", permissionsAny: ["View_SkuAttributeCode", "View_Vendor"] },
+      { label: "Attribute Types", to: "/settings/attribute-types", icon: "pi pi-sliders-h", permission: "ViewAny_AttributeType" },
       {
         label: "Shipping",
         icon: "pi pi-truck",
