@@ -132,6 +132,14 @@ export const SKU_ATTRIBUTE_CODES = {
   TYPES: "/sku-attribute-code/list/types",
 };
 
+export const ATTRIBUTE_TYPES = {
+  LIST: "/attribute-types",
+  CREATE: "/attribute-types",
+  SHOW: (id) => `/attribute-types/${id}`,
+  UPDATE: (id) => `/attribute-types/${id}`,
+  DELETE: (id) => `/attribute-types/${id}`,
+};
+
 export const PAYMENT_METHODS = {
   LIST:   "/payment-methods",
   CREATE: "/payment-methods",
