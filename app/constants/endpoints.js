@@ -26,6 +26,7 @@ export const PRODUCTS = {
   CREATE: "/products",
   SHOW: (id) => `/products/${id}`,
   UPDATE: (id) => `/products/${id}`,
+  CREATE_VARIANT: (id) => `/products/${id}/variants`,
 };
 
 export const CATEGORIES = { LIST: "/categories", CREATE: "/categories", SHOW: (id) => `/categories/${id}`, UPDATE: (id) => `/categories/${id}` };

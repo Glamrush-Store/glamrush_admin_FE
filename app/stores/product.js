@@ -1,4 +1,9 @@
 import { defineStore } from "pinia";
+import {
+  buildProductVariantFormData,
+  hasProductVariantPhotos,
+  normalizeProductVariantPayload,
+} from "~/composables/useProductVariantPayload";
 import { PRODUCTS, VARIANTS } from "~/constants/endpoints";
 
 export const useProductStore = defineStore("product", () => {
@@ -118,6 +123,21 @@ export const useProductStore = defineStore("product", () => {
     return await api.put(PRODUCTS.UPDATE(id), data);
   }
 
+  async function createProductVariant(productId, payload) {
+    const api = useApiClient();
+    if (hasProductVariantPhotos(payload)) {
+      return await api.postFormData(
+        PRODUCTS.CREATE_VARIANT(productId),
+        buildProductVariantFormData(payload),
+      );
+    }
+
+    return await api.post(
+      PRODUCTS.CREATE_VARIANT(productId),
+      normalizeProductVariantPayload(payload),
+    );
+  }
+
   async function fetchVariant(variantId) {
     const api = useApiClient();
     const response = await api.get(VARIANTS.SHOW(variantId));
@@ -163,6 +183,7 @@ export const useProductStore = defineStore("product", () => {
     archiveProduct,
     createProduct,
     updateProduct,
+    createProductVariant,
     fetchVariant,
     updateVariant,
     deleteVariant,

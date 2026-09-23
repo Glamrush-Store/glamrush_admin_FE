@@ -1,4 +1,7 @@
 <script setup>
+import { useToast } from "primevue/usetoast";
+import { ApiError } from "~/composables/apiClient";
+import AddProductVariantDialog from "~/components/products/AddProductVariantDialog.vue";
 import { useProductStore } from "~/stores/product";
 import { useConfirm } from "primevue/useconfirm";
 import {
@@ -10,8 +13,11 @@ import {
 const route = useRoute();
 const productStore = useProductStore();
 const confirm = useConfirm();
+const toast = useToast();
+const { can } = usePermissions();
 
 const id = route.params.id;
+const canUpdateProduct = computed(() => can("Update_Product"));
 
 function formatPrice(value) {
   if (value == null) return "—";
@@ -71,10 +77,62 @@ const productCategories = computed(() => getProductCategories(product.value));
 // --- Variant detail modal ---
 const variantModalVisible = ref(false);
 const selectedVariant = ref(null);
+const addVariantVisible = ref(false);
+const addVariantLoading = ref(false);
+const addVariantServerError = ref("");
+const addVariantValidationErrors = ref({});
 
 function openVariantModal(variant) {
   selectedVariant.value = variant;
   variantModalVisible.value = true;
+}
+
+function openAddVariantDialog() {
+  addVariantServerError.value = "";
+  addVariantValidationErrors.value = {};
+  addVariantVisible.value = true;
+}
+
+async function submitNewVariant(payload) {
+  addVariantLoading.value = true;
+  addVariantServerError.value = "";
+  addVariantValidationErrors.value = {};
+
+  try {
+    const response = await productStore.createProductVariant(id, payload);
+    await productStore.fetchProduct(id);
+    addVariantVisible.value = false;
+    toast.add({
+      severity: "success",
+      summary: response.message || "Product variant created",
+      life: 3500,
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.status === 422) {
+        addVariantValidationErrors.value = error.errors || {};
+        addVariantServerError.value = error.message || "Please check the highlighted fields.";
+        return;
+      }
+
+      if (error.status === 409) {
+        addVariantServerError.value = error.message || "This variant cannot be created because it conflicts with an existing variant.";
+        return;
+      }
+
+      if (error.status === 403) {
+        addVariantServerError.value = "You do not have permission to add variants to this product.";
+        return;
+      }
+
+      addVariantServerError.value = error.message || "Unable to create product variant.";
+      return;
+    }
+
+    addVariantServerError.value = "An unexpected error occurred.";
+  } finally {
+    addVariantLoading.value = false;
+  }
 }
 
 onMounted(() => {
@@ -85,6 +143,7 @@ onMounted(() => {
 <template>
   <div>
     <ConfirmDialog />
+    <Toast />
 
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
@@ -451,7 +510,21 @@ onMounted(() => {
         v-if="product.type === 'variable'"
         class="mt-6 bg-white rounded-lg border border-slate-200 p-6"
       >
-        <h2 class="text-lg font-semibold text-slate-800 mb-4">Variants</h2>
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="m-0 text-lg font-semibold text-slate-800">Variants</h2>
+            <p class="m-0 mt-1 text-sm text-slate-500">
+              Add variants without resubmitting existing variant records.
+            </p>
+          </div>
+          <Button
+            v-if="canUpdateProduct"
+            label="Add variant"
+            icon="pi pi-plus"
+            :disabled="addVariantLoading"
+            @click="openAddVariantDialog"
+          />
+        </div>
         <DataTable :value="product.variants || []" striped-rows>
           <Column field="sku" header="SKU">
             <template #body="{ data }">
@@ -516,6 +589,14 @@ onMounted(() => {
           </Column>
         </DataTable>
       </div>
+
+      <AddProductVariantDialog
+        v-model:visible="addVariantVisible"
+        :loading="addVariantLoading"
+        :server-error="addVariantServerError"
+        :errors="addVariantValidationErrors"
+        @submit="submitNewVariant"
+      />
 
       <!-- Variant Detail Modal -->
       <Dialog
