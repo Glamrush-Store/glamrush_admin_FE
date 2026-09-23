@@ -1,5 +1,8 @@
-const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000;
-const DEFAULT_STORAGE_KEY = "glamrush_admin_last_activity_at";
+import {
+  SESSION_ACTIVITY_STORAGE_KEY,
+  SESSION_INACTIVITY_TIMEOUT_MS,
+} from "~/constants/session";
+
 const ACTIVITY_EVENTS = [
   "click",
   "keydown",
@@ -11,8 +14,8 @@ const ACTIVITY_EVENTS = [
 
 export function useInactivityLogout(options = {}) {
   const {
-    timeoutMs = DEFAULT_TIMEOUT_MS,
-    storageKey = DEFAULT_STORAGE_KEY,
+    timeoutMs = SESSION_INACTIVITY_TIMEOUT_MS,
+    storageKey = SESSION_ACTIVITY_STORAGE_KEY,
   } = options;
 
   const authStore = useAuthStore();

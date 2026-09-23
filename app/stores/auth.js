@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { AUTH } from "~/constants/endpoints";
+import { SESSION_ACTIVITY_STORAGE_KEY } from "~/constants/session";
 
 export const useAuthStore = defineStore("auth", () => {
   const token = useCookie("auth_token");
@@ -11,6 +12,9 @@ export const useAuthStore = defineStore("auth", () => {
     const api = useApiClient();
     const response = await api.post(AUTH.LOGIN, credentials);
     token.value = response.data.access_token;
+    if (import.meta.client) {
+      window.localStorage.setItem(SESSION_ACTIVITY_STORAGE_KEY, String(Date.now()));
+    }
     await fetchUser(response.data.access_token);
   }
 
@@ -20,16 +24,23 @@ export const useAuthStore = defineStore("auth", () => {
     user.value = response.data;
   }
 
+  function clearSession() {
+    token.value = null;
+    user.value = null;
+    if (import.meta.client) {
+      window.localStorage.removeItem(SESSION_ACTIVITY_STORAGE_KEY);
+    }
+  }
+
   async function logout() {
     const api = useApiClient();
     try {
       await api.post(AUTH.LOGOUT);
     } finally {
-      token.value = null;
-      user.value = null;
+      clearSession();
       navigateTo("/");
     }
   }
 
-  return { token, user, isAuthenticated, login, fetchUser, logout };
+  return { token, user, isAuthenticated, login, fetchUser, clearSession, logout };
 });
