@@ -5,6 +5,9 @@ const authStore = useAuthStore();
 const route = useRoute();
 const sidebarCollapsed = shallowRef(false);
 const { can } = usePermissions();
+
+useInactivityLogout();
+
 const menuOpen = reactive({
   orders: route.path.startsWith("/orders") || route.path.startsWith("/payment-transactions"),
   catalog: route.path.startsWith("/products")
