@@ -99,6 +99,12 @@ export const CUSTOMERS = {
   SHOW: (id) => `/customers/${id}`,
 };
 
+export const CONTACT_SUBMISSIONS = {
+  LIST: "/contact-submissions",
+  SHOW: (id) => `/contact-submissions/${id}`,
+  UPDATE_STATUS: (id) => `/contact-submissions/${id}/status`,
+};
+
 export const USERS = {
   LIST: "/users",
   CREATE: "/users",
