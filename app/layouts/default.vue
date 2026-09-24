@@ -9,6 +9,7 @@ const { can } = usePermissions();
 useInactivityLogout();
 
 const menuOpen = reactive({
+  customers: route.path.startsWith("/customers"),
   orders: route.path.startsWith("/orders") || route.path.startsWith("/payment-transactions"),
   catalog: route.path.startsWith("/products")
     || route.path.startsWith("/categories")
@@ -30,7 +31,16 @@ const menuOpen = reactive({
 
 const navItems = [
   { type: "link", label: "Dashboard", to: "/dashboard", icon: "pi pi-home", permission: "View_Dashboard" },
-  { type: "link", label: "Customers", to: "/customers", icon: "pi pi-users", permission: "View_Customer" },
+  {
+    type: "group",
+    key: "customers",
+    label: "Customers",
+    icon: "pi pi-users",
+    children: [
+      { label: "Customers", to: "/customers", icon: "pi pi-users", permission: "View_Customer" },
+      { label: "Contact submissions", to: "/customers/contact-submissions", icon: "pi pi-inbox", permission: "ViewAny_ContactSubmission" },
+    ],
+  },
   {
     type: "group",
     key: "orders",
