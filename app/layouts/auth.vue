@@ -9,7 +9,7 @@ import "~/assets/css/auth.css";
     >
       <div class="text-center mb-8">
         <div
-          class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-white text-xl mb-3"
+          class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-black text-white text-xl mb-3"
         >
           <i class="pi pi-sparkles" />
         </div>
