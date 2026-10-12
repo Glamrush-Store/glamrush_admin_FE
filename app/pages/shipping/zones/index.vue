@@ -1,6 +1,7 @@
 <script setup>
 import { useShippingZoneStore } from "~/stores/shippingZone";
 import { ApiError } from "~/composables/apiClient";
+import { listCoverageSummary } from "~/constants/shippingZones";
 
 const zoneStore = useShippingZoneStore();
 const confirm = useConfirm();
@@ -126,11 +127,10 @@ onMounted(() => zoneStore.fetchZones());
     >
       <Column field="name" header="Name" sortable />
       <Column field="country" header="Country" />
-      <Column field="state" header="State">
-        <template #body="{ data }">{{ data.state ?? "-" }}</template>
-      </Column>
-      <Column field="city" header="City">
-        <template #body="{ data }">{{ data.city ?? "-" }}</template>
+      <Column header="Coverage">
+        <template #body="{ data }">
+          <span class="text-sm font-medium text-slate-800">{{ listCoverageSummary(data) }}</span>
+        </template>
       </Column>
       <Column field="is_active" header="Status">
         <template #body="{ data }">
