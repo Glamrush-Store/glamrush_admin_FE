@@ -63,7 +63,12 @@ export const useShippingZoneStore = defineStore("shippingZone", () => {
     try {
       const api = useApiClient();
       const response = await api.get(SHIPPING_LOCATION_OPTIONS.COUNTRIES);
-      countries.value = Array.isArray(response.data) ? response.data : [];
+      countries.value = Array.isArray(response.data)
+        ? response.data.map((country) => ({
+          ...country,
+          value: country.value || country.code,
+        }))
+        : [];
       return countries.value;
     } catch (error) {
       locationError.value = error.message || "Unable to load countries";
@@ -85,7 +90,15 @@ export const useShippingZoneStore = defineStore("shippingZone", () => {
     try {
       const api = useApiClient();
       const response = await api.get(SHIPPING_LOCATION_OPTIONS.COUNTRY(country));
-      countryLocations.value = response.data || { states: [], cities: [] };
+      const locations = response.data || { states: [], cities: [] };
+      countryLocations.value = {
+        ...locations,
+        country: locations.country
+          ? { ...locations.country, value: locations.country.value || locations.country.code }
+          : locations.country,
+        states: Array.isArray(locations.states) ? locations.states : [],
+        cities: Array.isArray(locations.cities) ? locations.cities : [],
+      };
       return countryLocations.value;
     } catch (error) {
       locationError.value = error.message || "Unable to load states and cities";
