@@ -1,8 +1,14 @@
 <script setup>
 import {
+  SPLIT_IMAGE_BANNER_TYPE,
   HOMEPAGE_SECTION_DIRECTION_OPTIONS,
   HOMEPAGE_SECTION_SORT_OPTIONS,
+  buildSplitImageBannerFormData,
+  defaultSplitImageBannerItems,
+  hydrateSplitImageBanner,
+  validateSplitImageBanner,
 } from "~/constants/homepageSections";
+import SplitImageBannerEditor from "./SplitImageBannerEditor.vue";
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -31,10 +37,15 @@ const form = reactive({
   ends_at: null,
 });
 const localError = shallowRef("");
+const splitItems = ref(defaultSplitImageBannerItems());
+const splitFiles = ref({});
+const splitExistingImages = ref({});
+const splitLocalErrors = ref({});
 
 const isEditing = computed(() => Boolean(props.section?.id));
 const selectedType = computed(() => props.sectionTypes.find((type) => type.value === form.type) || null);
 const configKeys = computed(() => selectedType.value?.config_keys || []);
+const isSplitImageBanner = computed(() => form.type === SPLIT_IMAGE_BANNER_TYPE);
 
 const productOptions = computed(() => props.products.map((product) => ({
   id: product.id,
@@ -107,6 +118,11 @@ function resetForm() {
   form.starts_at = dateForPicker(section.starts_at);
   form.ends_at = dateForPicker(section.ends_at);
   form.config = pruneConfigForType(section.config || {});
+  const split = hydrateSplitImageBanner(section);
+  splitItems.value = split.items;
+  splitFiles.value = {};
+  splitExistingImages.value = split.images;
+  splitLocalErrors.value = {};
   localError.value = "";
 }
 
@@ -170,6 +186,10 @@ function dateForApi(value) {
 }
 
 function normalizedConfig() {
+  if (isSplitImageBanner.value) {
+    return { items: splitItems.value };
+  }
+
   const config = {};
 
   configKeys.value.forEach((key) => {
@@ -203,9 +223,41 @@ function normalizedConfig() {
 
 function submit() {
   localError.value = "";
+  splitLocalErrors.value = {};
 
   if (!form.type || !form.title.trim()) {
     localError.value = "Section type and title are required.";
+    return;
+  }
+
+  if (isSplitImageBanner.value) {
+    const errors = validateSplitImageBanner({
+      items: splitItems.value,
+      files: splitFiles.value,
+      existingImages: splitExistingImages.value,
+      isEditing: isEditing.value,
+    });
+
+    if (Object.keys(errors).length) {
+      splitLocalErrors.value = errors;
+      localError.value = "Please correct the split banner fields.";
+      return;
+    }
+
+    emit("submit", buildSplitImageBannerFormData({
+      form: {
+        type: form.type,
+        title: form.title,
+        subtitle: nullableText(form.subtitle),
+        display_order: form.display_order,
+        is_active: form.is_active,
+        starts_at: dateForApi(form.starts_at),
+        ends_at: dateForApi(form.ends_at),
+      },
+      items: splitItems.value,
+      files: splitFiles.value,
+      isEditing: isEditing.value,
+    }));
     return;
   }
 
@@ -297,6 +349,18 @@ function submit() {
           <div v-if="!selectedType" class="rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
             Select a section type to configure it.
           </div>
+
+          <SplitImageBannerEditor
+            v-else-if="isSplitImageBanner"
+            :items="splitItems"
+            :files="splitFiles"
+            :existing-images="splitExistingImages"
+            :errors="{ ...errors, ...splitLocalErrors }"
+            :loading="loading"
+            :is-editing="isEditing"
+            @update:items="splitItems = $event"
+            @update:files="splitFiles = $event"
+          />
 
           <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div v-if="hasConfigKey('limit')" class="flex flex-col gap-1">

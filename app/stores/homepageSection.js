@@ -98,6 +98,9 @@ export const useHomepageSectionStore = defineStore("homepageSection", () => {
 
     try {
       const api = useApiClient();
+      if (payload instanceof FormData) {
+        return await api.postFormData(HOMEPAGE_SECTIONS.CREATE, payload);
+      }
       return await api.post(HOMEPAGE_SECTIONS.CREATE, payload);
     } finally {
       actionLoading.value = false;
@@ -109,6 +112,9 @@ export const useHomepageSectionStore = defineStore("homepageSection", () => {
 
     try {
       const api = useApiClient();
+      if (payload instanceof FormData) {
+        return await api.postFormData(HOMEPAGE_SECTIONS.UPDATE(id), payload);
+      }
       return await api.put(HOMEPAGE_SECTIONS.UPDATE(id), payload);
     } finally {
       actionLoading.value = false;
