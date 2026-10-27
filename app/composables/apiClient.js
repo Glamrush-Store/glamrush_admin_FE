@@ -93,7 +93,7 @@ export function useApiClient(clientOptions) {
     });
   }
 
-  async function download(url) {
+  async function download(url, downloadFilename) {
     const authValue = clientOptions?.authToken ?? token.value;
     const response = await fetch(`${config.public.apiBase}${url}`, {
       method: "GET",
@@ -120,9 +120,9 @@ export function useApiClient(clientOptions) {
 
     const disposition = response.headers.get("content-disposition") || "";
     const filenameMatch = disposition.match(/filename\*?=(?:UTF-8''|["'])?([^"';]+)/i);
-    const filename = filenameMatch
+    const filename = downloadFilename || (filenameMatch
       ? decodeURIComponent(filenameMatch[1])
-      : "newsletter-subscribers.csv";
+      : "newsletter-subscribers.csv");
     const objectUrl = URL.createObjectURL(await response.blob());
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
