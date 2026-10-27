@@ -29,6 +29,13 @@ export const PRODUCTS = {
   CREATE_VARIANT: (id) => `/products/${id}/variants`,
 };
 
+export const PRODUCT_IMPORTS = {
+  LIST: "/product-imports",
+  CREATE: "/product-imports",
+  TEMPLATE: "/product-imports/template",
+  SHOW: (id) => `/product-imports/${encodeURIComponent(id)}`,
+};
+
 export const CATEGORIES = { LIST: "/categories", CREATE: "/categories", SHOW: (id) => `/categories/${id}`, UPDATE: (id) => `/categories/${id}` };
 export const BRANDS = { LIST: "/brands", CREATE: "/brands", SHOW: (id) => `/brands/${id}`, UPDATE: (id) => `/brands/${id}` };
 export const VENDORS = { LIST: "/vendors", CREATE: "/vendors", SHOW: (id) => `/vendors/${id}`, UPDATE: (id) => `/vendors/${id}` };

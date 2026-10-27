@@ -10,6 +10,7 @@ import {
 } from "~/utils/categoryTree";
 
 const productStore = useProductStore();
+const { can } = usePermissions();
 
 const searchInput = ref("");
 let searchTimeout = null;
@@ -186,6 +187,9 @@ onMounted(() => {
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold text-slate-900">Products</h1>
       <div class="flex items-center gap-2">
+        <NuxtLink v-if="can('Create_Product')" to="/product-imports?create=1">
+          <Button label="Import Products" icon="pi pi-upload" severity="secondary" outlined />
+        </NuxtLink>
         <NuxtLink to="/products/create">
           <Button label="Add New Product" icon="pi pi-plus" />
         </NuxtLink>
