@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "01m4zy040zb0zxc1f9rhjswtd8",
+    "status": "completed_with_errors",
+    "configuration": {
+      "vendor_id": "01m2jcfq6gyyehqw5jfdmg66py",
+      "brand_id": "01m2jcfq76zbv7mdg896xjkgqd",
+      "category_ids": ["01m2jcfpdtbm7s949wk7ezr1ss", "01m2jcg0x9x68k4ysd1h2hgpbt"],
+      "primary_category_id": "01m2jcfpdtbm7s949wk7ezr1ss",
+      "category_sequences": [],
+      "default_status": "draft",
+      "image_failure_policy": "warn"
+    },
+    "original_filename": "product-import-sample (2).csv",
+    "progress": { "total_rows": 4, "total_products": 2, "processed_products": 2, "imported_products": 1, "failed_products": 1, "warning_count": 2 },
+    "issues": [
+      { "severity": "warning", "product_key": "P001", "rows": [1], "field": "image_url", "value": "https://example.com/images/classic-oud-front.jpg", "message": "Image download failed with HTTP 404: https://example.com/images/classic-oud-front.jpg" },
+      { "severity": "warning", "product_key": "P001", "rows": [1], "field": "image_url", "value": "https://example.com/images/classic-oud-side.jpg", "message": "Image download failed with HTTP 404: https://example.com/images/classic-oud-side.jpg" },
+      { "severity": "error", "product_key": "P002", "rows": [2, 3, 4], "message": "SKU code not defined for size: Small.", "errors": [] }
+    ],
+    "started_at": "2026-10-15T14:03:31.000000Z",
+    "completed_at": "2026-10-15T14:03:35.000000Z",
+    "created_at": "2026-10-15T14:03:31.000000Z",
+    "updated_at": "2026-10-15T14:03:35.000000Z"
+  }
+}

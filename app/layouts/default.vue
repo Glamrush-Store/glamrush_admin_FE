@@ -11,7 +11,7 @@ useInactivityLogout();
 const menuOpen = reactive({
   customers: route.path.startsWith("/customers"),
   orders: route.path.startsWith("/orders") || route.path.startsWith("/payment-transactions"),
-  catalog: route.path.startsWith("/products")
+  catalog: route.path.startsWith("/products") || route.path.startsWith("/product-imports")
     || route.path.startsWith("/categories")
     || route.path.startsWith("/brands")
     || route.path.startsWith("/vendors")
@@ -58,6 +58,7 @@ const navItems = [
     icon: "pi pi-box",
     children: [
       { label: "Products", to: "/products", icon: "pi pi-box", permission: "View_Product" },
+      { label: "Product Imports", to: "/product-imports", icon: "pi pi-upload", permissionsAny: ["View_Product", "Create_Product"] },
       { label: "Categories", to: "/categories", icon: "pi pi-tags", permission: "View_Category" },
       { label: "Brands", to: "/brands", icon: "pi pi-star", permission: "View_Brand" },
       { label: "Vendors", to: "/vendors", icon: "pi pi-truck", permission: "View_Vendor" },
@@ -235,7 +236,7 @@ function toggleMenu(key) {
     </aside>
 
     <!-- Main content -->
-    <div class="flex-1 flex flex-col bg-surface-50">
+    <div class="flex-1 min-w-0 flex flex-col bg-surface-50">
       <header class="flex items-center justify-between px-6 py-3 bg-white border-b border-surface-200">
         <button
           class="flex flex-col justify-center items-center gap-1 w-8 h-8 rounded-md hover:bg-surface-100 transition-colors cursor-pointer bg-transparent border-none p-1"
