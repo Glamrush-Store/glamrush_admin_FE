@@ -346,6 +346,11 @@ async function onSubmit({ valid, values }) {
 
   try {
     const hasNewImages = newImages.value.length > 0;
+    const saleFields = {
+      sale_price: pricing.sale_price === "" ? null : pricing.sale_price ?? null,
+      sale_starts_at: pricing.sale_starts_at ? pricing.sale_starts_at.toISOString() : null,
+      sale_ends_at: pricing.sale_ends_at ? pricing.sale_ends_at.toISOString() : null,
+    };
 
     if (hasNewImages) {
       // Use FormData when uploading new images
@@ -371,15 +376,10 @@ async function onSubmit({ valid, values }) {
 
       if (productType.value === "simple") {
         formData.append("price", pricing.price);
-        if (pricing.sale_price)
-          formData.append("sale_price", pricing.sale_price);
-        if (pricing.sale_starts_at)
-          formData.append(
-            "sale_starts_at",
-            pricing.sale_starts_at.toISOString(),
-          );
-        if (pricing.sale_ends_at)
-          formData.append("sale_ends_at", pricing.sale_ends_at.toISOString());
+        // Multipart has no null type; Laravel converts empty strings to null.
+        Object.entries(saleFields).forEach(([field, value]) => {
+          formData.append(field, value ?? "");
+        });
         formData.append("manage_stock", inventory.manage_stock ? "1" : "0");
         formData.append("stock_quantity", inventory.stock_quantity);
         formData.append("in_stock", inventory.in_stock ? "1" : "0");
@@ -413,11 +413,7 @@ async function onSubmit({ valid, values }) {
 
       if (productType.value === "simple") {
         payload.price = pricing.price;
-        if (pricing.sale_price) payload.sale_price = pricing.sale_price;
-        if (pricing.sale_starts_at)
-          payload.sale_starts_at = pricing.sale_starts_at.toISOString();
-        if (pricing.sale_ends_at)
-          payload.sale_ends_at = pricing.sale_ends_at.toISOString();
+        Object.assign(payload, saleFields);
         payload.manage_stock = inventory.manage_stock;
         payload.stock_quantity = inventory.stock_quantity;
         payload.in_stock = inventory.in_stock;
